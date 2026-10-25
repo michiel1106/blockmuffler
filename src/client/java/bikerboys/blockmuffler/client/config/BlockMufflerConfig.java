@@ -1,0 +1,19 @@
+package bikerboys.blockmuffler.client.config;
+
+import bikerboys.blockmuffler.*;
+import eu.midnightdust.lib.config.*;
+import net.minecraft.client.*;
+import net.minecraft.resources.*;
+
+public class BlockMufflerConfig extends MidnightConfig {
+    public static final String QUICK_SETTINGS = "Quick Settings";
+    public static final String GENERAL_SETTINGS = "General";
+    public static final String RENDERING = "Rendering";
+
+    @Entry(category = QUICK_SETTINGS) public static Identifier wand = Identifier.fromNamespaceAndPath("minecraft", "stick");
+    @Entry(category = QUICK_SETTINGS) public static boolean rendering = false;
+    @Entry(category = QUICK_SETTINGS) public static boolean editMode = false;
+
+
+
+}

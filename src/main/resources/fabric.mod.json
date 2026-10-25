@@ -1,0 +1,38 @@
+{
+	"schemaVersion": 1,
+	"id": "blockmuffler",
+	"version": "${version}",
+	"name": "blockmuffler",
+	"description": "This is an example description! Tell everyone what your mod is about!",
+	"authors": [
+		"Me!"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "MIT",
+	"icon": "assets/blockmuffler/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+          "bikerboys.blockmuffler.BlockMuffler"
+		],
+		"client": [
+          "bikerboys.blockmuffler.client.BlockMufflerClient"
+		]
+	},
+	"mixins": [
+		"blockmuffler.mixins.json",
+		{
+			"config": "blockmuffler.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.20.1",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

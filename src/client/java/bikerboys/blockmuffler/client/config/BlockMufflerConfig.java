@@ -1,6 +1,7 @@
 package bikerboys.blockmuffler.client.config;
 
 import bikerboys.blockmuffler.*;
+import bikerboys.blockmuffler.client.IOptions.*;
 import eu.midnightdust.lib.config.*;
 import net.minecraft.client.*;
 import net.minecraft.resources.*;
@@ -11,6 +12,7 @@ public class BlockMufflerConfig extends MidnightConfig {
     public static final String RENDERING = "Rendering";
 
     @Entry(category = QUICK_SETTINGS) public static Identifier wand = Identifier.fromNamespaceAndPath("minecraft", "stick");
+    @Entry(category = QUICK_SETTINGS) public static KeybindOptions areaKeybindOptions = KeybindOptions.SPECIAL_KEY_PLUS_SCROLL;
     @Entry(category = QUICK_SETTINGS) public static boolean rendering = false;
     @Entry(category = QUICK_SETTINGS) public static boolean editMode = false;
 

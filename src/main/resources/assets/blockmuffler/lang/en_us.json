@@ -1,0 +1,12 @@
+{
+  "blockmuffler.midnightconfig.areaKeybindOptions": "Area Size Keybind options",
+
+
+
+  "blockmuffler.message.key_disabled": "The key you are trying to press is disabled right now! Please check the config.",
+
+
+  "blockmuffler.midnightconfig.areaKeybindOptions.REGULAR_KEYBINDS": "Regular Keybinds",
+  "blockmuffler.midnightconfig.areaKeybindOptions.SPECIAL_KEY_PLUS_SCROLL": "Special Key + Scroll",
+  "blockmuffler.midnightconfig.areaKeybindOptions.tooltip": "Decides whether growing or shrinking an area uses the vanilla keybinds, or the way litematica does it, where you can hold a key configurable in keybinds, and scroll."
+}

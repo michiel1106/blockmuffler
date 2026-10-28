@@ -1,10 +1,7 @@
 package bikerboys.blockmuffler.client.areas;
 
 import net.minecraft.core.*;
-import net.minecraft.util.*;
 import net.minecraft.world.phys.*;
-
-import java.util.*;
 
 public class Area {
     private AABB aabb;
@@ -12,6 +9,7 @@ public class Area {
     private int color;
     private String name;
     private boolean locked = false;
+    private boolean renderPlacement = false;
 
 
     public Area(BlockPos pos1, BlockPos pos2, int color, String name) {
@@ -28,6 +26,14 @@ public class Area {
 
     public int getColor() {
         return color;
+    }
+
+    public void setRenderPlacement(boolean renderPlacement) {
+        this.renderPlacement = renderPlacement;
+    }
+
+    public boolean isRenderPlacement() {
+        return renderPlacement;
     }
 
     public boolean isSelected() {
@@ -74,5 +80,41 @@ public class Area {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public void resize(Direction face, int amount) {
+        if (locked || amount == 0) return;
+
+        Direction.Axis axis = face.getAxis();
+        boolean positiveFace = face.getAxisDirection() == Direction.AxisDirection.POSITIVE;
+
+        int c1 = pos1.get(axis);
+        int c2 = pos2.get(axis);
+        int size = Math.abs(c1 - c2) + 1;
+
+        amount = Math.max(amount, 1 - size);
+        if (amount == 0) return;
+
+        boolean movePos1 = positiveFace ? c1 >= c2 : c1 <= c2;
+
+        if (movePos1) {
+            pos1 = pos1.relative(face, amount);
+        } else {
+            pos2 = pos2.relative(face, amount);
+        }
+
+        rebuild();
+    }
+
+    public void grow(Direction face) {
+        resize(face, 1);
+    }
+
+    public void shrink(Direction face) {
+        resize(face, -1);
+    }
+
+    public void toggleRenderPlacement() {
+        this.renderPlacement = !this.renderPlacement;
     }
 }

@@ -7,12 +7,10 @@ import net.minecraft.world.phys.*;
 
 public class RenderUtils {
 
-    // ARGB colors
-    public static int CORNER_1_COLOR = 0xFFFF0000; // red  (min corner)
-    public static int CORNER_2_COLOR = 0xFF0000FF; // blue (max corner)
-    public static int EDGE_COLOR     = 0xFFFFFFFF; // white outline around the whole box
+    public static int CORNER_1_COLOR = 0xFFFF0000;
+    public static int CORNER_2_COLOR = 0xFF0000FF;
+    public static int EDGE_COLOR     = 0xFFFFFFFF;
 
-    // Line widths (in pixels)
     public static final float EDGE_WIDTH   = 2.0f;
     public static final float CORNER_WIDTH = 3.0f;
 
@@ -50,7 +48,7 @@ public class RenderUtils {
     }
 
     public static void drawBoxLines(PoseStack.Pose pose, VertexConsumer lines, AABB box, Area area) {
-        // Clear outline on the outside of the whole box
+
         if (area.isSelected()) {
             EDGE_COLOR = 0xFFFFFFFF;
         } else {
@@ -59,12 +57,10 @@ public class RenderUtils {
 
         drawBoxOutline(pose, lines, box, EDGE_COLOR, EDGE_WIDTH);
 
-        // Corner markers: up to 1x1x1 at each opposite corner
         double sx = Math.min(1.0, box.getXsize());
         double sy = Math.min(1.0, box.getYsize());
         double sz = Math.min(1.0, box.getZsize());
 
-        // Inflated a tiny bit so they sit on top of the big outline instead of z-fighting with it
         if (area.isSelected()) {
             AABB corner1 = new AABB(box.minX, box.minY, box.minZ, box.minX + sx, box.minY + sy, box.minZ + sz).inflate(0.005);
             AABB corner2 = new AABB(box.maxX - sx, box.maxY - sy, box.maxZ - sz, box.maxX, box.maxY, box.maxZ).inflate(0.005);

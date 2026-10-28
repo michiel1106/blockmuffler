@@ -17,7 +17,7 @@ public class AreaEditRenderManager {
         HudElementRegistryImpl.attachElementAfter(VanillaHudElements.SUBTITLES, Identifier.fromNamespaceAndPath(BlockMuffler.MOD_ID, "block_muffler"), new HudElement() {
             @Override
             public void extractRenderState(@NonNull GuiGraphicsExtractor g, @NonNull DeltaTracker deltaTracker) {
-                if (!WandUtil.isHoldingWand(Minecraft.getInstance().player)) return;
+                if (!WandUtil.isEditModeEnabled(Minecraft.getInstance().player)) return;
 
                 String text = "Currently selected area: " + AreaManager.getSelectedAreaOrNone();
 

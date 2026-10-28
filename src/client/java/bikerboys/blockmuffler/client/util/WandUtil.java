@@ -1,6 +1,5 @@
 package bikerboys.blockmuffler.client.util;
 
-import bikerboys.blockmuffler.*;
 import bikerboys.blockmuffler.client.areas.*;
 import bikerboys.blockmuffler.client.config.*;
 import net.minecraft.client.*;
@@ -9,9 +8,6 @@ import net.minecraft.core.registries.*;
 import net.minecraft.resources.*;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.*;
-import net.minecraft.world.item.*;
-import net.minecraft.world.level.*;
-import net.minecraft.world.level.levelgen.*;
 import net.minecraft.world.phys.*;
 import org.jetbrains.annotations.*;
 
@@ -19,7 +15,7 @@ import java.util.*;
 
 public class WandUtil {
 
-    public static boolean isHoldingWand(@Nullable Player player) {
+    public static boolean isEditModeEnabled(@Nullable Player player) {
         if (player == null) return false;
 
         Identifier key = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem());
@@ -37,38 +33,66 @@ public class WandUtil {
     }
 
 
-    public static Area raycastArea(double range) {
-        Entity cameraEntity = Minecraft.getInstance().getCameraEntity();
-        if (cameraEntity == null) {
-            return null;
-        }
 
-        Vec3 from = cameraEntity.getEyePosition(1.0f);
-        Vec3 view = cameraEntity.getViewVector(1.0f);
-        Vec3 to = from.add(view.scale(range));
 
-        Area closestArea = null;
-        double closestDistance = Double.MAX_VALUE;
+    public static @Nullable AreaHit raycastAreaHit(double range) {
+        Entity cam = Minecraft.getInstance().getCameraEntity();
+        if (cam == null) return null;
+
+        Vec3 from = cam.getEyePosition(1.0f);
+        Vec3 to = from.add(cam.getViewVector(1.0f).scale(range));
+        Vec3 dir = to.subtract(from);
+
+        AreaHit best = null;
+        double bestDist = Double.MAX_VALUE;
 
         for (Area area : AreaManager.areaList) {
-            Optional<Vec3> hit = area.getAabb().clip(from, to);
+            if (!area.isRenderPlacement()) continue;
+            AABB box = area.getAabb();
+            AreaHit hit;
 
-            if (hit.isEmpty()) {
-                continue;
+            if (box.contains(from)) {
+                hit = hitFromInside(area, box, from, dir);
+            } else {
+                BlockHitResult result = AABB.clip(List.of(box), from, to, BlockPos.ZERO);
+                hit = result == null ? null
+                        : new AreaHit(area, result.getDirection(), result.getLocation());
             }
+            if (hit == null) continue;
 
-            double distance = from.distanceToSqr(hit.get());
-
-            if (distance < closestDistance) {
-                closestDistance = distance;
-                closestArea = area;
+            double dist = from.distanceToSqr(hit.pos());
+            if (dist < bestDist) {
+                bestDist = dist;
+                best = hit;
             }
         }
-
-        return closestArea;
+        return best;
     }
 
+    private static @Nullable AreaHit hitFromInside(Area area, AABB box, Vec3 from, Vec3 dir) {
+        double tX = exitT(from.x, dir.x, box.minX, box.maxX);
+        double tY = exitT(from.y, dir.y, box.minY, box.maxY);
+        double tZ = exitT(from.z, dir.z, box.minZ, box.maxZ);
 
+        double t = Math.min(tX, Math.min(tY, tZ));
+        if (t > 1.0) return null; // wall is beyond the raycast range
+
+        Direction face;
+        if (t == tX)      face = dir.x > 0 ? Direction.EAST  : Direction.WEST;
+        else if (t == tY) face = dir.y > 0 ? Direction.UP    : Direction.DOWN;
+        else              face = dir.z > 0 ? Direction.SOUTH : Direction.NORTH;
+
+        return new AreaHit(area, face, from.add(dir.scale(t)));
+    }
+
+    /** Ray parameter (0..1 = within range) at which the ray leaves the slab on one axis. */
+    private static double exitT(double origin, double d, double min, double max) {
+        if (d > 0) return (max - origin) / d;
+        if (d < 0) return (min - origin) / d;
+        return Double.POSITIVE_INFINITY; // ray is parallel to this axis
+    }
+
+    public record AreaHit(Area area, Direction face, Vec3 pos) {}
 
 
 }

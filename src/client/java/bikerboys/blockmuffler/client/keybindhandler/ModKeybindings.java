@@ -1,7 +1,10 @@
 package bikerboys.blockmuffler.client.keybindhandler;
 
 import bikerboys.blockmuffler.*;
+import bikerboys.blockmuffler.client.IOptions.*;
 import bikerboys.blockmuffler.client.areas.*;
+import bikerboys.blockmuffler.client.config.*;
+import bikerboys.blockmuffler.client.screen.*;
 import bikerboys.blockmuffler.client.util.*;
 import com.mojang.blaze3d.platform.*;
 import eu.midnightdust.lib.config.*;
@@ -18,11 +21,17 @@ public class ModKeybindings {
 
     public static KeyMapping.Category blockMuffler = new KeyMapping.Category(Identifier.fromNamespaceAndPath(BlockMuffler.MOD_ID, "blockmuffler"));
 
-    public static KeyMapping openGui = r(new KeyMapping("blockmuffler.key.opengui", InputConstants.KEY_G, blockMuffler));
+    public static KeyMapping openConfig = r(new KeyMapping("blockmuffler.key.openconfig", InputConstants.KEY_G, blockMuffler));
+    public static KeyMapping openManager = r(new KeyMapping("blockmuffler.key.openmanager", InputConstants.KEY_M, blockMuffler));
+
+    public static KeyMapping specialKey = r(new KeyMapping("blockmuffler.key.specialkey", InputConstants.KEY_LALT, blockMuffler));
 
     public static KeyMapping selectArea = wand(new KeyMapping("blockmuffler.key.selectarea", InputConstants.MOUSE_BUTTON_MIDDLE, blockMuffler));
     public static KeyMapping setFirstPoint = wand(new KeyMapping("blockmuffler.key.setfirstpoint", InputConstants.MOUSE_BUTTON_LEFT, blockMuffler));
     public static KeyMapping setSecondPoint = wand(new KeyMapping("blockmuffler.key.setsecondpoint", InputConstants.MOUSE_BUTTON_RIGHT, blockMuffler));
+
+    public static KeyMapping growAreaSize = wand(new KeyMapping("blockmuffler.key.growareasize", InputConstants.KEY_EQUALS, blockMuffler));
+    public static KeyMapping shrinkAreaSize = wand(new KeyMapping("blockmuffler.key.shrinkareasize", InputConstants.KEY_MINUS, blockMuffler));
 
     public static void init() {
         KeyMapping.Category.register(blockMuffler.id());
@@ -33,16 +42,29 @@ public class ModKeybindings {
     }
 
     private static void tick(Minecraft mc) {
-        if (openGui.consumeClick()) {
+        if (openConfig.consumeClick()) {
             MidnightConfigScreen screen = MidnightConfig.getScreen(mc.gui.screen(), BlockMuffler.MOD_ID);
             mc.setScreenAndShow(screen);
         }
 
-        if (!WandUtil.isHoldingWand(mc.player)) return;
+        if (openManager.consumeClick()) {
+            mc.setScreenAndShow(new AreaManagerScreen());
+        }
+
+        if (!WandUtil.isEditModeEnabled(mc.player)) return;
 
         if (selectArea.consumeClick()) AreaManager.selectBox(mc.player);
         if (setFirstPoint.consumeClick()) AreaManager.setFirstPoint();
         if (setSecondPoint.consumeClick()) AreaManager.setSecondPoint();
+
+        if (BlockMufflerConfig.areaKeybindOptions == KeybindOptions.REGULAR_KEYBINDS) {
+            if (growAreaSize.consumeClick()) AreaManager.changeAreaSize(true);
+            if (shrinkAreaSize.consumeClick()) AreaManager.changeAreaSize(false);
+        } else {
+            if (growAreaSize.consumeClick() || shrinkAreaSize.consumeClick()) {
+                Utils.sendKeyNotWorkingMessage(mc);
+            }
+        }
 
         suppressConflictingMappings(mc);
     }

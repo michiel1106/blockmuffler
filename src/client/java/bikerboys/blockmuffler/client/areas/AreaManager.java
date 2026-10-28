@@ -18,7 +18,7 @@ import java.util.*;
 public class AreaManager {
     public static double RAYCAST_RANGE = 1024d;
 
-    public static Area selectedArea = null;
+    public static @Nullable Area selectedArea = null;
     public static List<Area> areaList = new ArrayList<>();
 
 
@@ -33,8 +33,14 @@ public class AreaManager {
     }
 
     public static void selectBox(@Nullable LocalPlayer player) {
-        if (WandUtil.isHoldingWand(player)) {
-            selectedArea = WandUtil.raycastArea(RAYCAST_RANGE);
+        if (WandUtil.isEditModeEnabled(player)) {
+            WandUtil.AreaHit areaHit = WandUtil.raycastAreaHit(RAYCAST_RANGE);
+
+            if (areaHit != null) {
+                selectedArea = areaHit.area();
+            } else {
+                selectedArea = null;
+            }
         }
     }
 
@@ -62,7 +68,7 @@ public class AreaManager {
         context.poseStack().pushPose();
         context.poseStack().translate(-camera.x, -camera.y, -camera.z);
 
-        areaList.forEach(area -> {
+        areaList.stream().filter(Area::isRenderPlacement).forEach(area -> {
             context.submitNodeCollector().submitCustomGeometry(context.poseStack(), RenderTypes.debugFilledBox(), (pose, buffer) -> {
                 int color = area.getColor();
 
@@ -88,18 +94,25 @@ public class AreaManager {
 
     }
 
-    public static void setFirstPoint() {
+    public static boolean continueFunc() {
         LocalPlayer player = Minecraft.getInstance().player;
-        if (!WandUtil.isHoldingWand(player)) return;
-        if (selectedArea == null) return;
+        if (!WandUtil.isEditModeEnabled(player)) return false;
+        if (selectedArea == null) return false;
         if (selectedArea.isLocked()) {
             player.sendOverlayMessage(Component.literal("Area: " + selectedArea.getName() + " is locked! Unlock it to edit it again!"));
-            return;
+            return false;
         }
+        return true;
+    }
+
+    public static void setFirstPoint() {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (!continueFunc()) return;
 
         BlockPos blockPos = WandUtil.raycastBlockPos();
         selectedArea.setPos1(blockPos);
 
+        assert player != null;
         player.sendOverlayMessage(Component.literal("Set point 1 of '" + selectedArea.getName() + "' to " + blockPos.toShortString()));
 
 
@@ -107,17 +120,49 @@ public class AreaManager {
 
     public static void setSecondPoint() {
         LocalPlayer player = Minecraft.getInstance().player;
-        if (!WandUtil.isHoldingWand(player)) return;
-        if (selectedArea == null) return;
-        if (selectedArea.isLocked()) {
-            player.sendOverlayMessage(Component.literal("Area: " + selectedArea.getName() + " is locked! Unlock it to edit it again!"));
-            return;
-        }
+        if (!continueFunc()) return;
 
         BlockPos blockPos = WandUtil.raycastBlockPos();
         selectedArea.setPos2(blockPos);
 
+        assert player != null;
         player.sendOverlayMessage(Component.literal("Set point 2 of '" + selectedArea.getName() + "' to " + blockPos.toShortString()));
 
     }
+
+    public static void changeAreaSize(boolean grow) {
+        if (!continueFunc()) return;
+
+        WandUtil.AreaHit areaHit = WandUtil.raycastAreaHit(AreaManager.RAYCAST_RANGE);
+        if (areaHit == null) return;
+        assert selectedArea != null;
+
+        if (grow) {
+            selectedArea.grow(areaHit.face());
+        } else {
+            selectedArea.shrink(areaHit.face());
+        }
+    }
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

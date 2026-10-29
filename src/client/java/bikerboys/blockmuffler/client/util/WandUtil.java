@@ -23,7 +23,6 @@ public class WandUtil {
         return key.equals(BlockMufflerConfig.wand);
     }
 
-
     public static @Nullable BlockPos raycastBlockPos() {
         Entity cam = Minecraft.getInstance().getCameraEntity();
         if (cam == null) return null;
@@ -31,9 +30,6 @@ public class WandUtil {
         if (hit.getType() != HitResult.Type.BLOCK) return null;
         return ((BlockHitResult) hit).getBlockPos();
     }
-
-
-
 
     public static @Nullable AreaHit raycastAreaHit(double range) {
         Entity cam = Minecraft.getInstance().getCameraEntity();
@@ -75,7 +71,7 @@ public class WandUtil {
         double tZ = exitT(from.z, dir.z, box.minZ, box.maxZ);
 
         double t = Math.min(tX, Math.min(tY, tZ));
-        if (t > 1.0) return null; // wall is beyond the raycast range
+        if (t > 1.0) return null;
 
         Direction face;
         if (t == tX)      face = dir.x > 0 ? Direction.EAST  : Direction.WEST;
@@ -85,14 +81,12 @@ public class WandUtil {
         return new AreaHit(area, face, from.add(dir.scale(t)));
     }
 
-    /** Ray parameter (0..1 = within range) at which the ray leaves the slab on one axis. */
     private static double exitT(double origin, double d, double min, double max) {
         if (d > 0) return (max - origin) / d;
         if (d < 0) return (min - origin) / d;
-        return Double.POSITIVE_INFINITY; // ray is parallel to this axis
+        return Double.POSITIVE_INFINITY;
     }
 
     public record AreaHit(Area area, Direction face, Vec3 pos) {}
-
 
 }

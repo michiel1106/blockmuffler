@@ -8,6 +8,9 @@ public class Area {
     private BlockPos pos1, pos2;
     private int color;
     private String name;
+    private int enclosingSize;
+    private int totalVolume;
+    private int rotation = 0;
     private boolean locked = false;
     private boolean renderPlacement = false;
 
@@ -46,6 +49,10 @@ public class Area {
 
     public String getName() {
         return name;
+    }
+
+    public int getRotation() {
+        return rotation;
     }
 
     public void setAabb(AABB aabb) {
@@ -116,5 +123,76 @@ public class Area {
 
     public void toggleRenderPlacement() {
         this.renderPlacement = !this.renderPlacement;
+    }
+
+    public void moveTo(BlockPos newOrigin) {
+        if (locked || pos1 == null || pos2 == null) return;
+
+        BlockPos origin = getOrigin();
+        int dx = newOrigin.getX() - origin.getX();
+        int dy = newOrigin.getY() - origin.getY();
+        int dz = newOrigin.getZ() - origin.getZ();
+        if (dx == 0 && dy == 0 && dz == 0) return;
+
+        pos1 = pos1.offset(dx, dy, dz);
+        pos2 = pos2.offset(dx, dy, dz);
+        rebuild();
+    }
+
+    public void moveBy(int dx, int dy, int dz) {
+        if (locked || pos1 == null || pos2 == null) return;
+
+        BlockPos origin = getOrigin();
+        moveTo(origin.offset(dx, dy, dz));
+    }
+
+    public void movePos1To(BlockPos target) {
+        if (locked || pos1 == null || pos2 == null) return;
+
+        pos1 = target;
+        rebuild();
+    }
+
+    public void movePos2To(BlockPos target) {
+        if (locked || pos1 == null || pos2 == null) return;
+
+        pos2 = target;
+        rebuild();
+    }
+
+    public void rotate(int quarterTurns) {
+        if (locked || pos1 == null || pos2 == null) return;
+
+        int turns = Math.floorMod(quarterTurns, 4);
+        if (turns == 0) return;
+
+        int dx = pos2.getX() - pos1.getX();
+        int dz = pos2.getZ() - pos1.getZ();
+        for (int i = 0; i < turns; i++) {
+            int previousDx = dx;
+            dx = -dz;
+            dz = previousDx;
+        }
+
+        pos2 = new BlockPos(pos1.getX() + dx, pos2.getY(), pos1.getZ() + dz);
+        rotation = Math.floorMod(rotation + turns * 90, 360);
+        rebuild();
+    }
+
+    public BlockPos getOrigin() {
+        return BlockPos.containing(getAabb().getMinPosition());
+    }
+
+    public Vec3i getEnclosingSize() {
+        return new Vec3i(
+                Math.abs(pos1.getX() - pos2.getX()) + 1,
+                Math.abs(pos1.getY() - pos2.getY()) + 1,
+                Math.abs(pos1.getZ() - pos2.getZ()) + 1
+        );
+    }
+
+    public long getTotalVolume() {
+        Vec3i size = getEnclosingSize();
+        return (long) size.getX() * size.getY() * size.getZ();
     }
 }

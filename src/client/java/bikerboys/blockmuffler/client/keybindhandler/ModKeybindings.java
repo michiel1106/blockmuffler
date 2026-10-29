@@ -51,7 +51,7 @@ public class ModKeybindings {
             mc.setScreenAndShow(new AreaManagerScreen());
         }
 
-        if (!WandUtil.isEditModeEnabled(mc.player)) return;
+
 
         if (selectArea.consumeClick()) AreaManager.selectBox(mc.player);
         if (setFirstPoint.consumeClick()) AreaManager.setFirstPoint();

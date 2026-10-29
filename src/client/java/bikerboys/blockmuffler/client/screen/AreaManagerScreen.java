@@ -16,12 +16,17 @@ public class AreaManagerScreen extends Screen {
     private static final int SCROLLBAR_WIDTH = 4;
     private static final double SCROLL_SPEED = 18.0;
 
+    private static final int MIN_INFO_WIDTH = 140;
+    private static final int PANEL_GAP = 4;
+
     private static final int PANEL_COLOR = 0xC0101010;
     private static final int SCROLL_TRACK_COLOR = 0x30FFFFFF;
     private static final int SCROLL_THUMB_COLOR = 0xFFA0A0A0;
 
     private final List<AreaWidget> allWidgets = new ArrayList<>();
     private final List<AreaWidget> shownWidgets = new ArrayList<>();
+
+    private final AreaInfoPanel infoPanel = new AreaInfoPanel();
 
     private EditBox searchBar;
     private String searchText = "";
@@ -69,11 +74,15 @@ public class AreaManagerScreen extends Screen {
         int margin = (int) (width * 0.06f);
         int searchY = (int) (height * 0.012f);
         int searchHeight = Math.max(20, (int) (height * 0.045f));
+        int infoWidth = Math.max(MIN_INFO_WIDTH, (int) (width * 0.15f));
 
         listLeft = margin;
-        listRight = width - margin;
+        listRight = width - margin - infoWidth - PANEL_GAP;
         listTop = searchY + searchHeight + 4;
         listBottom = height - (int) (height * 0.04f);
+
+        infoPanel.setBounds(listRight + PANEL_GAP, searchY, width - margin, listBottom);
+        infoPanel.init(font, this::addWidget);
 
         searchBar = new EditBox(font, margin, searchY, listRight - listLeft, searchHeight, Component.literal("Area Searchbox"));
         searchBar.setValue(searchText);
@@ -216,6 +225,7 @@ public class AreaManagerScreen extends Screen {
         super.extractRenderState(g, mouseX, mouseY, a);
         updateSmoothScroll();
         renderAreaWidgets(g, mouseX, mouseY, a);
+        infoPanel.render(g, mouseX, mouseY, a, selectedArea);
     }
 
     @Override

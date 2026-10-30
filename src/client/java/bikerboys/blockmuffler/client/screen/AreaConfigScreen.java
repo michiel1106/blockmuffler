@@ -155,8 +155,10 @@ public class AreaConfigScreen extends Screen {
             gridIndex++;
         }
 
-        colorHeaderY = leftY;
-        leftY += HEADER_HEIGHT + 100;
+        int categoryRows = (gridIndex + 1) / 2;
+
+        colorHeaderY = leftY + categoryRows * (WIDGET_HEIGHT + WIDGET_GAP) + 6;
+        leftY = colorHeaderY + HEADER_HEIGHT + 2;
 
         int color = area.getColor();
 

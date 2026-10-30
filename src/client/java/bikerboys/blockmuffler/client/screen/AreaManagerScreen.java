@@ -26,7 +26,7 @@ public class AreaManagerScreen extends Screen {
     private static final int CREATE_HEIGHT = 20;
     private static final int BOTTOM_MARGIN = 3;
     private static final int DEFAULT_SIZE = 1;
-    private static final int[] AREA_COLORS = {colorFromFloat(0.5f, 0, 1, 0), colorFromFloat(0.5f, 0, 1, 1), ARGB.colorFromFloat(0.5f, 1, 1, 0), ARGB.colorFromFloat(0.5f, 1, 0, 0), ARGB.colorFromFloat(0.5f, 1, 0, 1), ARGB.colorFromFloat(0.5f, 1, 1, 1wwww)};
+    private static final int[] AREA_COLORS = {colorFromFloat(0.5f, 0, 1, 0), colorFromFloat(0.5f, 0, 1, 1), ARGB.colorFromFloat(0.5f, 1, 1, 0), ARGB.colorFromFloat(0.5f, 1, 0, 0), ARGB.colorFromFloat(0.5f, 1, 0, 1), ARGB.colorFromFloat(0.5f, 1, 1, 1)};
 
     private static final int PANEL_COLOR = 0xC0101010;
     private static final int SCROLL_TRACK_COLOR = 0x30FFFFFF;

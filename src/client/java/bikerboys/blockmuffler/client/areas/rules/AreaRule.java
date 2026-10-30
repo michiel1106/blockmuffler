@@ -62,10 +62,26 @@ public class AreaRule {
         return null;
     }
 
+    public SoundRule findMatchingRule(String soundId) {
+        SoundRule best = null;
+        int bestSpecificity = -1;
+
+        for (SoundRule rule : soundRules) {
+            if (!rule.matches(soundId)) continue;
+
+            int specificity = rule.specificity();
+            if (specificity > bestSpecificity) {
+                best = rule;
+                bestSpecificity = specificity;
+            }
+        }
+        return best;
+    }
+
     public float getVolumeMultiplier(String soundId, SoundSource category) {
         float result = volMultiplier * getCategoryMultiplier(category);
 
-        SoundRule rule = getSoundRule(soundId);
+        SoundRule rule = findMatchingRule(soundId);
         if (rule != null) {
             if (rule.isBlocked()) return 0.0f;
             result *= rule.getVolumeMul();

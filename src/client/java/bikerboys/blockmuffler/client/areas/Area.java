@@ -200,4 +200,8 @@ public class Area {
         Vec3i size = getEnclosingSize();
         return (long) size.getX() * size.getY() * size.getZ();
     }
+
+    public void setRotation(int rotation) {
+        this.rotation = rotation;
+    }
 }

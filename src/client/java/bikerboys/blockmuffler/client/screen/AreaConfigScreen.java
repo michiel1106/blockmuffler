@@ -18,6 +18,11 @@ public class AreaConfigScreen extends Screen {
 
     private static final int OUTER_PAD = 12;
     private static final int COLUMN_GAP = 12;
+    private static final int MAX_COLUMN_WIDTH = 240;
+    private static final int TITLE_Y = 8;
+    private static final int TOP_BAR = 26;
+    private static final int FOOTER_HEIGHT = 33;
+    private static final int SEPARATOR_THICKNESS = 2;
     private static final int HEADER_HEIGHT = 12;
     private static final int WIDGET_HEIGHT = 20;
     private static final int WIDGET_GAP = 2;
@@ -31,31 +36,25 @@ public class AreaConfigScreen extends Screen {
     private static final int MUTE_WIDTH = 56;
     private static final int ADD_WIDTH = 40;
     private static final int PAGER_BUTTON_WIDTH = 20;
-    private static final int DONE_WIDTH = 120;
-    private static final int DONE_HEIGHT = 22;
+    private static final int DONE_WIDTH = 200;
+    private static final int NAME_LABEL_WIDTH = 44;
 
-    private static final int PANEL_COLOR = 0xC0101010;
-    private static final int TITLE_COLOR = 0xFFFFFFFF;
     private static final int HEADER_COLOR = 0xFFA0A0A0;
-    private static final int VALUE_COLOR = 0xFFFFFFFF;
-    private static final int EMPTY_COLOR = 0xFF909090;
     private static final int ERROR_COLOR = 0xFFFF5555;
     private static final int SUCCESS_COLOR = 0xFF55FF55;
 
     private static final Component GENERAL_HEADER = Component.literal("General");
-    private static final Component CATEGORIES_HEADER = Component.literal("Sound categories");
+    private static final Component CATEGORIES_HEADER = Component.literal("Sound Categories");
+    private static final Component COLOR_HEADER = Component.literal("Area Color");
     private static final Component NO_RULES = Component.literal("No sound rules yet");
-    private static final Component INPUT_HINT = Component.literal("sound id, e.g. entity.zombie.ambient");
+    private static final Component INPUT_HINT = Component.literal("e.g. entity.zombie.* or *");
     private static final Component INCLUDE_TOOLTIP = Component.literal("If disabled it wont block entity sounds.");
-    private static final Component COLOR_HEADER = Component.literal("Area color");
 
     private static List<String> soundIds;
 
     private final Screen parent;
     private final Area area;
     private final AreaRule areaRule;
-
-    private int colorHeaderY;
 
     private final List<AbstractWidget> drawList = new ArrayList<>();
     private final List<PanelButton> suggestionButtons = new ArrayList<>();
@@ -66,6 +65,8 @@ public class AreaConfigScreen extends Screen {
     private PanelButton includeButton;
     private PanelButton prevButton;
     private PanelButton nextButton;
+    private EditBox nameInput;
+    private int nameLabelY;
 
     private String inputText = "";
     private String statusText = "";
@@ -75,8 +76,8 @@ public class AreaConfigScreen extends Screen {
     private boolean needsRebuild;
 
     private int leftX, rightX, colWidth;
-    private int panelTop, panelBottom;
-    private int generalHeaderY, categoriesHeaderY, rightHeaderY;
+    private int bodyTop, bodyBottom;
+    private int generalHeaderY, categoriesHeaderY, colorHeaderY, rightHeaderY;
     private int statusY, rulesTop, pagerY;
 
     public AreaConfigScreen(Screen parent, Area area) {
@@ -95,15 +96,15 @@ public class AreaConfigScreen extends Screen {
         suggestionIds.clear();
         ruleViews.clear();
 
-        colWidth = (width - OUTER_PAD * 2 - COLUMN_GAP) / 2;
-        leftX = OUTER_PAD;
-        rightX = OUTER_PAD + colWidth + COLUMN_GAP;
+        colWidth = Math.min(MAX_COLUMN_WIDTH, (width - OUTER_PAD * 2 - COLUMN_GAP) / 2);
+        leftX = (width - (colWidth * 2 + COLUMN_GAP)) / 2;
+        rightX = leftX + colWidth + COLUMN_GAP;
 
-        int doneY = height - DONE_HEIGHT - 4;
-        panelTop = 18;
-        panelBottom = doneY - 6;
+        bodyTop = TOP_BAR;
+        bodyBottom = height - FOOTER_HEIGHT;
+        int doneY = bodyBottom + SEPARATOR_THICKNESS + (FOOTER_HEIGHT - SEPARATOR_THICKNESS - WIDGET_HEIGHT) / 2;
 
-        int rightY = panelTop + 4;
+        int rightY = bodyTop + 6;
         rightHeaderY = rightY;
         rightY += HEADER_HEIGHT;
         int inputY = rightY;
@@ -111,7 +112,7 @@ public class AreaConfigScreen extends Screen {
         statusY = rightY;
         rightY += 11;
         rulesTop = rightY;
-        pagerY = panelBottom - WIDGET_HEIGHT - 4;
+        pagerY = bodyBottom - WIDGET_HEIGHT - 4;
         int rulesBottom = pagerY - 4;
         int rowsPerPage = Math.max(1, (rulesBottom - rulesTop) / RULE_ROW_HEIGHT);
 
@@ -123,9 +124,31 @@ public class AreaConfigScreen extends Screen {
             addWidget(button);
         }
 
-        int leftY = panelTop + 4;
+        int leftY = bodyTop + 6;
         generalHeaderY = leftY;
         leftY += HEADER_HEIGHT;
+
+        nameLabelY = leftY + (WIDGET_HEIGHT - font.lineHeight) / 2;
+
+        nameInput = new EditBox(
+                font,
+                leftX + NAME_LABEL_WIDTH,
+                leftY,
+                colWidth - NAME_LABEL_WIDTH,
+                WIDGET_HEIGHT,
+                Component.literal("Area name")
+        );
+
+        nameInput.setMaxLength(48);
+        nameInput.setHint(Component.literal("Enter area name"));
+        nameInput.setValue(area.getName() == null ? "" : area.getName());
+
+        nameInput.setResponder(area::setName);
+
+        drawList.add(nameInput);
+
+        leftY += WIDGET_HEIGHT + WIDGET_GAP;
+
 
         drawList.add(new ValueSlider(leftX, leftY, colWidth, WIDGET_HEIGHT, "Volume multiplier", areaRule.getVolMultiplier(), v -> areaRule.setVolMultiplier((float) v)));
         leftY += WIDGET_HEIGHT + WIDGET_GAP;
@@ -157,39 +180,30 @@ public class AreaConfigScreen extends Screen {
 
         int categoryRows = (gridIndex + 1) / 2;
 
-        colorHeaderY = leftY + categoryRows * (WIDGET_HEIGHT + WIDGET_GAP) + 6;
-        leftY = colorHeaderY + HEADER_HEIGHT + 2;
+        colorHeaderY = leftY + categoryRows * (WIDGET_HEIGHT + WIDGET_GAP) + 4;
+        leftY = colorHeaderY + HEADER_HEIGHT;
 
         int color = area.getColor();
+        String[] channelNames = {"Red", "Green", "Blue"};
+        int[] shifts = {16, 8, 0};
+        int channelWidth = (colWidth - GRID_GAP * 2) / 3;
+        for (int i = 0; i < 3; i++) {
+            int shift = shifts[i];
+            int x = leftX + i * (channelWidth + GRID_GAP);
+            int w = i == 2 ? leftX + colWidth - x : channelWidth;
 
-        drawList.add(new ValueSlider(
-                leftX, leftY, colWidth, WIDGET_HEIGHT,
-                "Red",
-                ((color >> 16) & 0xFF) / 255.0,
-                255, "",
-                v -> setColorChannel(16, v)
-        ));
-        leftY += WIDGET_HEIGHT + WIDGET_GAP;
-
-        drawList.add(new ValueSlider(
-                leftX, leftY, colWidth, WIDGET_HEIGHT,
-                "Green",
-                ((color >> 8) & 0xFF) / 255.0,
-                255, "",
-                v -> setColorChannel(8, v)
-        ));
-        leftY += WIDGET_HEIGHT + WIDGET_GAP;
-
-        drawList.add(new ValueSlider(
-                leftX, leftY, colWidth, WIDGET_HEIGHT,
-                "Blue",
-                (color & 0xFF) / 255.0,
-                255, "",
-                v -> setColorChannel(0, v)
-        ));
+            drawList.add(new ValueSlider(
+                    x, leftY, w, WIDGET_HEIGHT,
+                    channelNames[i],
+                    ((color >> shift) & 0xFF) / 255.0,
+                    255, "",
+                    v -> setColorChannel(shift, v)
+            ));
+        }
 
         soundInput = new EditBox(font, rightX, inputY, colWidth - ADD_WIDTH - 2, WIDGET_HEIGHT, Component.literal("Sound id"));
         soundInput.setMaxLength(128);
+        soundInput.setHint(INPUT_HINT);
         soundInput.setValue(inputText);
         soundInput.setResponder(s -> {
             inputText = s;
@@ -232,7 +246,8 @@ public class AreaConfigScreen extends Screen {
         nextButton.active = page < pageCount - 1;
         drawList.add(nextButton);
 
-        drawList.add(new PanelButton((width - DONE_WIDTH) / 2, doneY, DONE_WIDTH, DONE_HEIGHT, Component.literal("Done"), this::onClose));
+        int doneWidth = Math.min(DONE_WIDTH, width - OUTER_PAD * 2);
+        drawList.add(new PanelButton((width - doneWidth) / 2, doneY, doneWidth, WIDGET_HEIGHT, Component.literal("Done"), this::onClose));
 
         for (AbstractWidget widget : drawList) {
             addWidget(widget);
@@ -277,19 +292,42 @@ public class AreaConfigScreen extends Screen {
     }
 
     private static String normalizeId(String raw) {
-        String id = raw.trim().toLowerCase(Locale.ROOT);
+        String id = raw.trim().toLowerCase(Locale.ROOT).replaceAll("\\*+", "*");
         if (id.isEmpty()) return null;
-        if (!id.contains(":")) {
+        if (!id.contains(":") && !id.startsWith("*")) {
             id = "minecraft:" + id;
         }
-        return id.matches("[a-z0-9_.-]+:[a-z0-9_./-]+") ? id : null;
+        return isValidPattern(id) ? id : null;
+    }
+
+    private static boolean isValidPattern(String id) {
+        if (!id.matches("[a-z0-9_.:*/-]+")) return false;
+        int colon = id.indexOf(':');
+        return colon == id.lastIndexOf(':') && colon != 0 && colon != id.length() - 1;
+    }
+
+    private void showWildcardMatches(String query) {
+        String pattern = normalizeId(query);
+        if (pattern == null) return;
+
+        int count = 0;
+        for (String id : allSoundIds()) {
+            if (SoundRule.matches(pattern, id)) {
+                count++;
+            }
+        }
+
+        statusError = count == 0;
+        statusText = count == 0 ? "Matches no known sounds" : "Matches " + count + (count == 1 ? " sound" : " sounds");
     }
 
     private void refreshSuggestions() {
         suggestionIds.clear();
 
         String query = inputText.trim().toLowerCase(Locale.ROOT);
-        if (!query.isEmpty()) {
+        if (query.indexOf('*') >= 0) {
+            showWildcardMatches(query);
+        } else if (!query.isEmpty()) {
             for (String id : allSoundIds()) {
                 if (id.contains(query) && areaRule.getSoundRule(id) == null) {
                     suggestionIds.add(id);
@@ -371,25 +409,32 @@ public class AreaConfigScreen extends Screen {
 
         super.extractRenderState(g, mouseX, mouseY, a);
 
-        g.text(font, fit("Configure: " + area.getName(), width - OUTER_PAD * 2), OUTER_PAD, 6, TITLE_COLOR);
+        MenuStyle.centeredText(g, font, fit("Configure: " + area.getName(), width - OUTER_PAD * 2), width / 2, TITLE_Y, MenuStyle.TEXT_COLOR);
 
-        g.text(font, GENERAL_HEADER, leftX, generalHeaderY, HEADER_COLOR);
-        g.text(font, CATEGORIES_HEADER, leftX, categoriesHeaderY, HEADER_COLOR);
-        g.text(font, Component.literal("Sound rules (" + areaRule.getSoundRules().size() + ")"), rightX, rightHeaderY, HEADER_COLOR);
-        g.text(font, COLOR_HEADER, leftX, colorHeaderY, HEADER_COLOR);
+        int leftCenter = leftX + colWidth / 2;
+        int rightCenter = rightX + colWidth / 2;
+        MenuStyle.centeredText(g, font, GENERAL_HEADER, leftCenter, generalHeaderY, MenuStyle.TEXT_COLOR);
+        g.text(
+                font,
+                Component.literal("Name"),
+                leftX,
+                nameLabelY,
+                HEADER_COLOR
+        );
+        MenuStyle.centeredText(g, font, CATEGORIES_HEADER, leftCenter, categoriesHeaderY, MenuStyle.TEXT_COLOR);
+        MenuStyle.centeredText(g, font, COLOR_HEADER, leftCenter, colorHeaderY, MenuStyle.TEXT_COLOR);
+        MenuStyle.centeredText(g, font, Component.literal("Sound Rules (" + areaRule.getSoundRules().size() + ")"), rightCenter, rightHeaderY, MenuStyle.TEXT_COLOR);
 
         if (!statusText.isEmpty()) {
             g.text(font, fit(statusText, colWidth), rightX, statusY, statusError ? ERROR_COLOR : SUCCESS_COLOR);
         }
 
         if (ruleViews.isEmpty()) {
-            g.text(font, NO_RULES, rightX, rulesTop + 4, EMPTY_COLOR);
+            g.text(font, NO_RULES, rightX, rulesTop + 4, MenuStyle.EMPTY_COLOR);
         }
         for (RuleView view : ruleViews) {
-            g.text(font, fit(view.rule().soundId, colWidth - REMOVE_WIDTH - 6), rightX, view.y() + (RULE_LINE_HEIGHT - font.lineHeight) / 2 + 1, VALUE_COLOR);
+            g.text(font, fit(view.rule().soundId, colWidth - REMOVE_WIDTH - 6), rightX, view.y() + (RULE_LINE_HEIGHT - font.lineHeight) / 2 + 1, MenuStyle.TEXT_COLOR);
         }
-
-
 
         Component pageLabel = Component.literal("Page " + (page + 1) + "/" + pageCount);
         int pageLabelX = rightX + (colWidth - font.width(pageLabel)) / 2;
@@ -397,11 +442,6 @@ public class AreaConfigScreen extends Screen {
 
         for (AbstractWidget widget : drawList) {
             widget.extractRenderState(g, mouseX, mouseY, a);
-        }
-
-
-        if (soundInput.getValue().isEmpty() && !soundInput.isFocused()) {
-            g.text(font, fit(INPUT_HINT.getString(), soundInput.getWidth() - 8), soundInput.getX() + 4, soundInput.getY() + (WIDGET_HEIGHT - font.lineHeight) / 2, EMPTY_COLOR);
         }
 
         for (PanelButton button : suggestionButtons) {
@@ -412,8 +452,9 @@ public class AreaConfigScreen extends Screen {
     @Override
     public void extractBackground(GuiGraphicsExtractor g, int mouseX, int mouseY, float a) {
         super.extractBackground(g, mouseX, mouseY, a);
-        g.fill(leftX - 4, panelTop, leftX + colWidth + 4, panelBottom, PANEL_COLOR);
-        g.fill(rightX - 4, panelTop, rightX + colWidth + 4, panelBottom, PANEL_COLOR);
+        MenuStyle.body(g, 0, bodyTop, width, bodyBottom);
+        MenuStyle.headerSeparator(g, 0, width, bodyTop - SEPARATOR_THICKNESS);
+        MenuStyle.footerSeparator(g, 0, width, bodyBottom);
     }
 
     @Override
@@ -422,6 +463,10 @@ public class AreaConfigScreen extends Screen {
 
     @Override
     public void onClose() {
+        String newName = nameInput.getValue().trim();
+
+        area.setName(newName.isEmpty() ? "Unnamed" : newName);
+
         minecraft.setScreenAndShow(parent);
     }
 

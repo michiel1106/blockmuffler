@@ -18,6 +18,7 @@ import java.util.*;
 public class ModKeybindings {
     public static List<KeyMapping> keyMappings = new ArrayList<>();
     public static List<KeyMapping> wandMappings = new ArrayList<>();
+    public static List<KeyMapping> laterWandMappings = new ArrayList<>();
 
     public static KeyMapping.Category blockMuffler = new KeyMapping.Category(Identifier.fromNamespaceAndPath(BlockMuffler.MOD_ID, "blockmuffler"));
 
@@ -26,6 +27,8 @@ public class ModKeybindings {
 
     public static KeyMapping specialKey = r(new KeyMapping("blockmuffler.key.specialkey", InputConstants.KEY_LALT, blockMuffler));
 
+    public static KeyMapping toggleAllPlacements = r(new KeyMapping("blockmuffler.key.toggleallplacements", InputConstants.KEY_END, blockMuffler));
+
     public static KeyMapping selectArea = wand(new KeyMapping("blockmuffler.key.selectarea", InputConstants.MOUSE_BUTTON_MIDDLE, blockMuffler));
     public static KeyMapping setFirstPoint = wand(new KeyMapping("blockmuffler.key.setfirstpoint", InputConstants.MOUSE_BUTTON_LEFT, blockMuffler));
     public static KeyMapping setSecondPoint = wand(new KeyMapping("blockmuffler.key.setsecondpoint", InputConstants.MOUSE_BUTTON_RIGHT, blockMuffler));
@@ -33,10 +36,12 @@ public class ModKeybindings {
     public static KeyMapping growAreaSize = wand(new KeyMapping("blockmuffler.key.growareasize", InputConstants.KEY_EQUALS, blockMuffler));
     public static KeyMapping shrinkAreaSize = wand(new KeyMapping("blockmuffler.key.shrinkareasize", InputConstants.KEY_MINUS, blockMuffler));
 
+
     public static void init() {
         KeyMapping.Category.register(blockMuffler.id());
 
         keyMappings.forEach(KeyMappingHelper::registerKeyMapping);
+        laterWandMappings.forEach(KeyMappingHelper::registerKeyMapping);
 
         ClientTickEvents.START_CLIENT_TICK.register(ModKeybindings::tick);
     }
@@ -49,6 +54,10 @@ public class ModKeybindings {
 
         if (openManager.consumeClick()) {
             mc.setScreenAndShow(new AreaManagerScreen());
+        }
+
+        if (toggleAllPlacements.consumeClick()) {
+            AreaManager.toggleAllPlacements();
         }
 
 
@@ -66,7 +75,9 @@ public class ModKeybindings {
             }
         }
 
-        suppressConflictingMappings(mc);
+        if (WandUtil.isEditModeEnabled(mc.player)) {
+            suppressConflictingMappings(mc);
+        }
     }
 
     private static void suppressConflictingMappings(Minecraft mc) {
@@ -90,6 +101,7 @@ public class ModKeybindings {
 
     private static KeyMapping wand(KeyMapping keyMapping) {
         wandMappings.add(keyMapping);
-        return r(keyMapping);
+        laterWandMappings.add(keyMapping);
+        return keyMapping;
     }
 }

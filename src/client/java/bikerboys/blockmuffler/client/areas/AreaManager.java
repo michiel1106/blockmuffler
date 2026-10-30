@@ -146,6 +146,9 @@ public class AreaManager {
         }
     }
 
+    public static void toggleAllPlacements() {
+        areaList.forEach(Area::toggleRenderPlacement);
+    }
 }
 
 

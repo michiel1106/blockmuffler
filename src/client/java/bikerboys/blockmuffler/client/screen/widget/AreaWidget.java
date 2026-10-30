@@ -1,6 +1,7 @@
 package bikerboys.blockmuffler.client.screen.widget;
 
 import bikerboys.blockmuffler.client.areas.*;
+import bikerboys.blockmuffler.client.screen.*;
 import net.minecraft.client.*;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.gui.components.*;
@@ -9,6 +10,7 @@ import net.minecraft.client.input.*;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
+import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.*;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
@@ -40,17 +42,15 @@ public class AreaWidget extends AbstractWidget {
             Identifier.withDefaultNamespace("widget/button_highlighted")
     );
 
-    private static final int COLOR_BG = 0x99000000;
-    private static final int COLOR_BG_HOVER = 0x99121212;
-    private static final int COLOR_TEXT = 0xFFFFFFFF;
-    private static final int COLOR_OUTLINE = 0xFFFFFFFF;
-
-    private static final int NAME_PAD_LEFT = 8;
+    private static final int NAME_PAD_LEFT = 6;
     private static final int NAME_PAD_RIGHT = 8;
+    private static final int NAME_TOP = 5;
+    private static final int LINE_GAP = 2;
+    private static final int SELECTION_GROW = 2;
     private static final int OUTER_PAD = 4;
     private static final int BTN_GAP = 3;
     private static final int BTN_TEXT_PAD = 6;
-    private static final int BTN_V_MARGIN = 2;
+    private static final int BTN_HEIGHT = 20;
 
     private static final Component LABEL_CONFIGURE = Component.literal("Configure");
     private static final Component LABEL_PLACEMENT_ON = Component.literal("Placement: ON");
@@ -89,11 +89,7 @@ public class AreaWidget extends AbstractWidget {
     }
 
     private int buttonTop() {
-        return getY() + BTN_V_MARGIN;
-    }
-
-    private int buttonHeight() {
-        return getHeight() - BTN_V_MARGIN * 2;
+        return getY() + (getHeight() - BTN_HEIGHT) / 2;
     }
 
     private Slot[] layoutSlots(Font font) {
@@ -111,7 +107,7 @@ public class AreaWidget extends AbstractWidget {
     private Slot slotAt(double mouseX, double mouseY, Font font) {
         if (!isMouseOver(mouseX, mouseY)) return null;
         int top = buttonTop();
-        if (mouseY < top || mouseY >= top + buttonHeight()) return null;
+        if (mouseY < top || mouseY >= top + BTN_HEIGHT) return null;
         for (Slot slot : layoutSlots(font)) {
             if (slot.contains(mouseX)) return slot;
         }
@@ -148,28 +144,24 @@ public class AreaWidget extends AbstractWidget {
         int right = x + getWidth();
         int bottom = y + getHeight();
 
-        g.fill(x, y, right, bottom, rowHovered ? COLOR_BG_HOVER : COLOR_BG);
-
         if (selected) {
-            g.fill(x, y, right, y + 1, COLOR_OUTLINE);
-            g.fill(x, bottom - 1, right, bottom, COLOR_OUTLINE);
-            g.fill(x, y + 1, x + 1, bottom - 1, COLOR_OUTLINE);
-            g.fill(right - 1, y + 1, right, bottom - 1, COLOR_OUTLINE);
+            MenuStyle.selection(g, x - SELECTION_GROW, y - SELECTION_GROW, right + SELECTION_GROW, bottom + SELECTION_GROW);
+        } else if (rowHovered) {
+            g.fill(x, y, right, bottom, MenuStyle.HOVER_OVERLAY);
         }
 
         Slot[] slots = layoutSlots(font);
 
-        int nameX = x + NAME_PAD_LEFT;
-        int nameMaxWidth = slots[0].x0() - NAME_PAD_RIGHT - nameX;
-        int nameY = y + (getHeight() - font.lineHeight) / 2 + 1;
-        g.text(font, fitName(font, nameMaxWidth), nameX, nameY, COLOR_TEXT);
+        int textX = x + NAME_PAD_LEFT;
+        int textMaxWidth = slots[0].x0() - NAME_PAD_RIGHT - textX;
+        g.text(font, fit(font, getMessage().getString(), textMaxWidth), textX, y + NAME_TOP, MenuStyle.TEXT_COLOR);
+        g.text(font, fit(font, describe(), textMaxWidth), textX, y + NAME_TOP + font.lineHeight + LINE_GAP, MenuStyle.SUBTEXT_COLOR);
 
         int btnTop = buttonTop();
-        int btnHeight = buttonHeight();
         for (Slot slot : slots) {
             boolean hovered = rowHovered
                     && slot.contains(mouseX)
-                    && mouseY >= btnTop && mouseY < btnTop + btnHeight;
+                    && mouseY >= btnTop && mouseY < btnTop + BTN_HEIGHT;
 
             Component label = switch (slot.action()) {
                 case CONFIGURE -> LABEL_CONFIGURE;
@@ -184,25 +176,30 @@ public class AreaWidget extends AbstractWidget {
                     slot.x0(),
                     btnTop,
                     btnWidth,
-                    btnHeight,
+                    BTN_HEIGHT,
                     ARGB.white(1.0F)
             );
 
             int labelX = slot.x0() + (btnWidth - font.width(label)) / 2;
-            int labelY = btnTop + (btnHeight - font.lineHeight) / 2 + 1;
-            g.text(font, label, labelX, labelY, COLOR_TEXT);
+            int labelY = btnTop + (BTN_HEIGHT - font.lineHeight) / 2 + 1;
+            g.text(font, label, labelX, labelY, MenuStyle.TEXT_COLOR);
         }
     }
 
-    private Component fitName(Font font, int maxWidth) {
-        Component full = getMessage();
+    private String describe() {
+        Vec3i size = area.getEnclosingSize();
+        return size.getX() + " x " + size.getY() + " x " + size.getZ();
+    }
+
+    private Component fit(Font font, String text, int maxWidth) {
+        Component full = Component.literal(text);
         if (font.width(full) <= maxWidth) return full;
 
-        String name = full.getString();
-        while (!name.isEmpty() && font.width(Component.literal(name + "...")) > maxWidth) {
-            name = name.substring(0, name.length() - 1);
+        String shortened = text;
+        while (!shortened.isEmpty() && font.width(Component.literal(shortened + "...")) > maxWidth) {
+            shortened = shortened.substring(0, shortened.length() - 1);
         }
-        return Component.literal(name + "...");
+        return Component.literal(shortened + "...");
     }
 
     @Override

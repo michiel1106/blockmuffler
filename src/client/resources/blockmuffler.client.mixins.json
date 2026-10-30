@@ -3,7 +3,7 @@
   "package": "bikerboys.blockmuffler.client.mixin",
   "compatibilityLevel": "JAVA_25",
   "client": [
-    "ExampleClientMixin"
+    "SoundEngineMixin"
   ],
   "injectors": {
     "defaultRequire": 1

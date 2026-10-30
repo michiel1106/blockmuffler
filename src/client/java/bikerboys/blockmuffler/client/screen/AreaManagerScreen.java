@@ -14,23 +14,27 @@ import static net.minecraft.util.ARGB.colorFromFloat;
 import java.util.*;
 
 public class AreaManagerScreen extends Screen {
-    private static final int ROW_HEIGHT = 24;
+    private static final int ROW_HEIGHT = 28;
     private static final int ROW_GAP = 4;
     private static final int PADDING = 4;
-    private static final int SCROLLBAR_WIDTH = 4;
+    private static final int LIST_INSET = 8;
+    private static final int SCROLLBAR_WIDTH = MenuStyle.SCROLLBAR_WIDTH;
     private static final double SCROLL_SPEED = 18.0;
 
     private static final int MIN_INFO_WIDTH = 140;
-    private static final int PANEL_GAP = 4;
+    private static final int SEPARATOR_THICKNESS = 2;
 
-    private static final int CREATE_HEIGHT = 20;
-    private static final int BOTTOM_MARGIN = 3;
+    private static final int TITLE_Y = 8;
+    private static final int SEARCH_Y = 22;
+    private static final int SEARCH_HEIGHT = 20;
+    private static final int SEARCH_MAX_WIDTH = 300;
+    private static final int HEADER_HEIGHT = 48;
+    private static final int FOOTER_HEIGHT = 33;
+    private static final int BUTTON_HEIGHT = 20;
+    private static final int DONE_WIDTH = 150;
+
     private static final int DEFAULT_SIZE = 1;
     private static final int[] AREA_COLORS = {colorFromFloat(0.5f, 0, 1, 0), colorFromFloat(0.5f, 0, 1, 1), ARGB.colorFromFloat(0.5f, 1, 1, 0), ARGB.colorFromFloat(0.5f, 1, 0, 0), ARGB.colorFromFloat(0.5f, 1, 0, 1), ARGB.colorFromFloat(0.5f, 1, 1, 1)};
-
-    private static final int PANEL_COLOR = 0xC0101010;
-    private static final int SCROLL_TRACK_COLOR = 0x30FFFFFF;
-    private static final int SCROLL_THUMB_COLOR = 0xFFA0A0A0;
 
     private final List<AreaWidget> allWidgets = new ArrayList<>();
     private final List<AreaWidget> shownWidgets = new ArrayList<>();
@@ -40,7 +44,7 @@ public class AreaManagerScreen extends Screen {
     private EditBox searchBar;
     private String searchText = "";
 
-    private int listLeft, listTop, listRight, listBottom;
+    private int listLeft, listTop, listRight, listBottom, infoLeft;
 
     private double scrollTarget = 0;
     private double scrollCurrent = 0;
@@ -73,33 +77,34 @@ public class AreaManagerScreen extends Screen {
     };
 
     public AreaManagerScreen() {
-        super(Component.empty());
+        super(Component.literal("Area Manager"));
     }
 
     @Override
     protected void init() {
         super.init();
 
-        int margin = (int) (width * 0.06f);
-        int searchY = (int) (height * 0.012f);
-        int searchHeight = Math.max(20, (int) (height * 0.045f));
         int infoWidth = Math.max(MIN_INFO_WIDTH, (int) (width * 0.15f));
-        int createY = height - BOTTOM_MARGIN - CREATE_HEIGHT;
+        infoLeft = width - infoWidth;
 
-        listLeft = margin;
-        listRight = width - margin - infoWidth - PANEL_GAP;
-        listTop = searchY + searchHeight + 4;
-        listBottom = createY - 4;
+        listLeft = 0;
+        listRight = infoLeft - SEPARATOR_THICKNESS;
+        listTop = HEADER_HEIGHT;
+        listBottom = height - FOOTER_HEIGHT;
 
-        int infoLeft = listRight + PANEL_GAP;
-        int infoRight = width - margin;
+        int columnCenter = (listLeft + listRight) / 2;
+        int searchWidth = Math.min(listRight - listLeft - LIST_INSET * 2, SEARCH_MAX_WIDTH);
+        int buttonY = listBottom + SEPARATOR_THICKNESS + (FOOTER_HEIGHT - SEPARATOR_THICKNESS - BUTTON_HEIGHT) / 2;
+        int doneWidth = Math.min(DONE_WIDTH, listRight - listLeft - LIST_INSET * 2);
 
-        infoPanel.setBounds(infoLeft, searchY, infoRight, listBottom);
+        infoPanel.setBounds(infoLeft, 0, width, listBottom);
         infoPanel.init(font, this::addWidget);
 
-        addRenderableWidget(new PanelButton(infoLeft, createY, infoRight - infoLeft, CREATE_HEIGHT, Component.literal("Create new area"), this::createArea));
+        addRenderableWidget(new PanelButton(infoLeft + LIST_INSET, buttonY, infoWidth - LIST_INSET * 2, BUTTON_HEIGHT, Component.literal("Create new area"), this::createArea));
+        addRenderableWidget(new PanelButton(columnCenter - doneWidth / 2, buttonY, doneWidth, BUTTON_HEIGHT, Component.literal("Done"), this::onClose));
 
-        searchBar = new EditBox(font, margin, searchY, listRight - listLeft, searchHeight, Component.literal("Area Searchbox"));
+        searchBar = new EditBox(font, columnCenter - searchWidth / 2, SEARCH_Y, searchWidth, SEARCH_HEIGHT, Component.literal("Area Searchbox"));
+        searchBar.setHint(Component.literal("Search areas..."));
         searchBar.setValue(searchText);
         searchBar.setResponder(s -> {
             searchText = s;
@@ -224,7 +229,7 @@ public class AreaManagerScreen extends Screen {
 
     public void renderAreaWidgets(GuiGraphicsExtractor g, int mouseX, int mouseY, float a) {
         int max = maxScroll();
-        int rowWidth = listRight - listLeft - PADDING * 2 - (max > 0 ? SCROLLBAR_WIDTH + 2 : 0);
+        int rowWidth = listRight - listLeft - LIST_INSET * 2 - (max > 0 ? SCROLLBAR_WIDTH + 2 : 0);
         int originY = listTop + PADDING - (int) Math.round(scrollCurrent);
 
         g.enableScissor(listLeft, listTop, listRight, listBottom);
@@ -233,7 +238,7 @@ public class AreaManagerScreen extends Screen {
             AreaWidget widget = shownWidgets.get(i);
             int y = originY + i * (ROW_HEIGHT + ROW_GAP);
 
-            widget.setX(listLeft + PADDING);
+            widget.setX(listLeft + LIST_INSET);
             widget.setY(y);
             widget.setWidth(rowWidth);
             widget.setClip(listTop, listBottom);
@@ -245,18 +250,11 @@ public class AreaManagerScreen extends Screen {
 
         if (shownWidgets.isEmpty()) {
             Component empty = Component.literal(allWidgets.isEmpty() ? "No areas yet" : "No areas match your search");
-            int textX = (listLeft + listRight - font.width(empty)) / 2;
-            g.text(font, empty, textX, listTop + 12, 0xFF909090);
+            MenuStyle.centeredText(g, font, empty, (listLeft + listRight) / 2, listTop + 12, MenuStyle.EMPTY_COLOR);
         }
 
         if (max > 0) {
-            int viewport = listBottom - listTop;
-            int thumbHeight = Math.max(16, viewport * viewport / (viewport + max));
-            int trackX = listRight - SCROLLBAR_WIDTH - 2;
-            int thumbY = listTop + (int) ((viewport - thumbHeight) * (scrollCurrent / max));
-
-            g.fill(trackX, listTop, trackX + SCROLLBAR_WIDTH, listBottom, SCROLL_TRACK_COLOR);
-            g.fill(trackX, thumbY, trackX + SCROLLBAR_WIDTH, thumbY + thumbHeight, SCROLL_THUMB_COLOR);
+            MenuStyle.scrollbar(g, listRight - SCROLLBAR_WIDTH - 2, listTop, listBottom, listBottom - listTop + max, scrollCurrent, max);
         }
 
         g.disableScissor();
@@ -269,12 +267,17 @@ public class AreaManagerScreen extends Screen {
         updateSmoothScroll();
         renderAreaWidgets(g, mouseX, mouseY, a);
         infoPanel.render(g, mouseX, mouseY, a, AreaManager.selectedArea);
+        MenuStyle.centeredText(g, font, title, (listLeft + listRight) / 2, TITLE_Y, MenuStyle.TEXT_COLOR);
     }
 
     @Override
     public void extractBackground(GuiGraphicsExtractor g, int mouseX, int mouseY, float a) {
         super.extractBackground(g, mouseX, mouseY, a);
-        g.fill(listLeft, listTop, listRight, listBottom, PANEL_COLOR);
+        MenuStyle.body(g, listLeft, listTop, listRight, listBottom);
+        MenuStyle.body(g, infoLeft, 0, width, listBottom);
+        MenuStyle.verticalSeparator(g, listRight, 0, listBottom);
+        MenuStyle.headerSeparator(g, listLeft, listRight, listTop - SEPARATOR_THICKNESS);
+        MenuStyle.footerSeparator(g, 0, width, listBottom);
     }
 
     @Override

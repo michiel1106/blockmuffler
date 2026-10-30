@@ -1,6 +1,7 @@
 package bikerboys.blockmuffler.client.screen.widget;
 
 import bikerboys.blockmuffler.client.areas.*;
+import bikerboys.blockmuffler.client.screen.*;
 import net.minecraft.client.*;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.gui.components.*;
@@ -31,26 +32,19 @@ public class AreaInfoPanel {
         }
     }
 
-    private static final int PANEL_COLOR = 0xC0101010;
-    private static final int DIVIDER_COLOR = 0x40FFFFFF;
-    private static final int TITLE_COLOR = 0xFFFFFFFF;
-    private static final int LABEL_COLOR = 0xFFA0A0A0;
-    private static final int VALUE_COLOR = 0xFFFFFFFF;
-    private static final int EMPTY_COLOR = 0xFF909090;
-
     private static final int PADDING = 6;
     private static final int SECTION_GAP = 4;
     private static final int ROW_GAP = 2;
-    private static final int BUTTON_HEIGHT = 16;
+    private static final int BUTTON_HEIGHT = 20;
     private static final int MODE_BUTTON_HEIGHT = 12;
     private static final int MODE_BUTTON_PADDING = 8;
     private static final int AXIS_LABEL_WIDTH = 14;
     private static final int STEP_BUTTON_WIDTH = 30;
-    private static final int ROTATE_BUTTON_WIDTH = 26;
+    private static final int ROTATE_BUTTON_WIDTH = 28;
 
     private static final String[] AXIS_NAMES = {"X:", "Y:", "Z:"};
 
-    private static final Component TITLE = Component.literal("Area info");
+    private static final Component TITLE = Component.literal("Area Info");
     private static final Component EMPTY = Component.literal("Select an area");
     private static final Component ORIGIN_TITLE = Component.literal("Placement origin");
     private static final Component EDIT_LABEL = Component.literal("Edit:");
@@ -127,8 +121,6 @@ public class AreaInfoPanel {
     public void render(GuiGraphicsExtractor g, int mouseX, int mouseY, float a, Area area) {
         this.area = area;
 
-        g.fill(left, top, right, bottom, PANEL_COLOR);
-
         boolean hasArea = area != null;
         for (AbstractWidget widget : widgets) {
             widget.visible = hasArea;
@@ -137,8 +129,7 @@ public class AreaInfoPanel {
         if (!hasArea) {
             unfocusBoxes();
             lastArea = null;
-            int textX = left + (right - left - font.width(EMPTY)) / 2;
-            g.text(font, EMPTY, textX, top + PADDING, EMPTY_COLOR);
+            MenuStyle.centeredText(g, font, EMPTY, (left + right) / 2, top + PADDING, MenuStyle.EMPTY_COLOR);
             return;
         }
 
@@ -172,16 +163,14 @@ public class AreaInfoPanel {
 
         g.enableScissor(left, top, right, bottom);
 
-        g.text(font, TITLE, x, y, TITLE_COLOR);
-        y += font.lineHeight + 3;
-        g.fill(x, y, x + innerWidth, y + 1, DIVIDER_COLOR);
-        y += 1 + SECTION_GAP;
+        MenuStyle.centeredText(g, font, TITLE, (left + right) / 2, y, MenuStyle.TEXT_COLOR);
+        y += font.lineHeight + 6;
 
         for (Entry entry : entries(area)) {
             Component label = Component.literal(entry.label());
-            g.text(font, label, x, y, LABEL_COLOR);
+            g.text(font, label, x, y, MenuStyle.SUBTEXT_COLOR);
             int valueX = x + font.width(label) + 3;
-            g.text(font, fit(entry.value(), x + innerWidth - valueX), valueX, y, VALUE_COLOR);
+            g.text(font, fit(entry.value(), x + innerWidth - valueX), valueX, y, MenuStyle.TEXT_COLOR);
             y += font.lineHeight + 2;
         }
         y += SECTION_GAP;
@@ -189,18 +178,18 @@ public class AreaInfoPanel {
         place(lockButton, x, y, innerWidth);
         y += BUTTON_HEIGHT + SECTION_GAP;
 
-        g.text(font, ORIGIN_TITLE, x, y, LABEL_COLOR);
+        g.text(font, ORIGIN_TITLE, x, y, MenuStyle.SUBTEXT_COLOR);
         y += font.lineHeight + 2;
 
         int modeWidth = modeButtonWidth();
         int modeTextY = y + (MODE_BUTTON_HEIGHT - font.lineHeight) / 2 + 1;
-        g.text(font, EDIT_LABEL, x, modeTextY, LABEL_COLOR);
+        g.text(font, EDIT_LABEL, x, modeTextY, MenuStyle.SUBTEXT_COLOR);
         place(modeButton, x + innerWidth - modeWidth, y, modeWidth);
         y += MODE_BUTTON_HEIGHT + ROW_GAP;
 
         for (int i = 0; i < 3; i++) {
             int textY = y + (BUTTON_HEIGHT - font.lineHeight) / 2 + 1;
-            g.text(font, Component.literal(AXIS_NAMES[i]), x, textY, VALUE_COLOR);
+            g.text(font, Component.literal(AXIS_NAMES[i]), x, textY, MenuStyle.TEXT_COLOR);
             place(boxes[i], x + AXIS_LABEL_WIDTH + 2, y, boxWidth);
             place(steppers[i], x + innerWidth - STEP_BUTTON_WIDTH, y, STEP_BUTTON_WIDTH);
             y += BUTTON_HEIGHT + ROW_GAP;
@@ -213,7 +202,7 @@ public class AreaInfoPanel {
         int rotateRightX = x + innerWidth - ROTATE_BUTTON_WIDTH;
         int rotateLeftX = rotateRightX - 2 - ROTATE_BUTTON_WIDTH;
         int rotationTextY = y + (BUTTON_HEIGHT - font.lineHeight) / 2 + 1;
-        g.text(font, fit("Rotation: " + area.getRotation(), rotateLeftX - 4 - x), x, rotationTextY, VALUE_COLOR);
+        g.text(font, fit("Rotation: " + area.getRotation(), rotateLeftX - 4 - x), x, rotationTextY, MenuStyle.TEXT_COLOR);
         place(rotateLeftButton, rotateLeftX, y, ROTATE_BUTTON_WIDTH);
         place(rotateRightButton, rotateRightX, y, ROTATE_BUTTON_WIDTH);
 

@@ -19,7 +19,7 @@ public class BlockMufflerClient implements ClientModInitializer {
 		AreaManager.init();
 		AreaManager.addTestBoxes();
 		AreaEditRenderManager.init();
-
+		AreaSaveManager.init();
 
 
 

@@ -2,10 +2,14 @@ package bikerboys.blockmuffler.client.screen;
 
 import bikerboys.blockmuffler.client.areas.*;
 import bikerboys.blockmuffler.client.screen.widget.*;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.screens.*;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.*;
+import net.minecraft.util.*;
+import static net.minecraft.util.ARGB.colorFromFloat;
 
 import java.util.*;
 
@@ -18,6 +22,11 @@ public class AreaManagerScreen extends Screen {
 
     private static final int MIN_INFO_WIDTH = 140;
     private static final int PANEL_GAP = 4;
+
+    private static final int CREATE_HEIGHT = 20;
+    private static final int BOTTOM_MARGIN = 3;
+    private static final int DEFAULT_SIZE = 1;
+    private static final int[] AREA_COLORS = {colorFromFloat(0.5f, 0, 1, 0), colorFromFloat(0.5f, 0, 1, 1), ARGB.colorFromFloat(0.5f, 1, 1, 0), ARGB.colorFromFloat(0.5f, 1, 0, 0), ARGB.colorFromFloat(0.5f, 1, 0, 1), ARGB.colorFromFloat(0.5f, 1, 1, 1wwww)};
 
     private static final int PANEL_COLOR = 0xC0101010;
     private static final int SCROLL_TRACK_COLOR = 0x30FFFFFF;
@@ -40,11 +49,11 @@ public class AreaManagerScreen extends Screen {
     private final Set<Area> placementOn = Collections.newSetFromMap(new IdentityHashMap<>());
 
     private Area pendingDelete;
-    private Area selectedArea;
 
     private final AreaWidget.Listener areaListener = new AreaWidget.Listener() {
         @Override
         public void onConfigure(Area area) {
+            Minecraft.getInstance().setScreenAndShow(new AreaConfigScreen(AreaManagerScreen.this, area));
         }
 
         @Override
@@ -59,7 +68,7 @@ public class AreaManagerScreen extends Screen {
 
         @Override
         public void onSelect(Area area) {
-            selectedArea = area;
+            AreaManager.selectedArea = area;
         }
     };
 
@@ -75,14 +84,20 @@ public class AreaManagerScreen extends Screen {
         int searchY = (int) (height * 0.012f);
         int searchHeight = Math.max(20, (int) (height * 0.045f));
         int infoWidth = Math.max(MIN_INFO_WIDTH, (int) (width * 0.15f));
+        int createY = height - BOTTOM_MARGIN - CREATE_HEIGHT;
 
         listLeft = margin;
         listRight = width - margin - infoWidth - PANEL_GAP;
         listTop = searchY + searchHeight + 4;
-        listBottom = height - (int) (height * 0.04f);
+        listBottom = createY - 4;
 
-        infoPanel.setBounds(listRight + PANEL_GAP, searchY, width - margin, listBottom);
+        int infoLeft = listRight + PANEL_GAP;
+        int infoRight = width - margin;
+
+        infoPanel.setBounds(infoLeft, searchY, infoRight, listBottom);
         infoPanel.init(font, this::addWidget);
+
+        addRenderableWidget(new PanelButton(infoLeft, createY, infoRight - infoLeft, CREATE_HEIGHT, Component.literal("Create new area"), this::createArea));
 
         searchBar = new EditBox(font, margin, searchY, listRight - listLeft, searchHeight, Component.literal("Area Searchbox"));
         searchBar.setValue(searchText);
@@ -96,6 +111,34 @@ public class AreaManagerScreen extends Screen {
         setInitialFocus(searchBar);
 
         buildWidgets();
+    }
+
+    private void createArea() {
+        var player = Minecraft.getInstance().player;
+        if (player == null) return;
+
+        BlockPos origin = player.blockPosition();
+        BlockPos opposite = origin.offset(DEFAULT_SIZE - 1, DEFAULT_SIZE - 1, DEFAULT_SIZE - 1);
+        Area area = new Area(origin, opposite, AREA_COLORS[AreaManager.areaList.size() % AREA_COLORS.length], nextAreaName());
+        AreaManager.areaList.add(area);
+
+        AreaManager.selectedArea = area;
+        searchBar.setValue("");
+        buildWidgets();
+        scrollTarget = maxScroll();
+    }
+
+    private String nextAreaName() {
+        Set<String> used = new HashSet<>();
+        for (Area existing : AreaManager.areaList) {
+            used.add(existing.getName());
+        }
+
+        int number = 1;
+        while (used.contains("Area " + number)) {
+            number++;
+        }
+        return "Area " + number;
     }
 
     private void buildWidgets() {
@@ -132,8 +175,8 @@ public class AreaManagerScreen extends Screen {
 
         AreaManager.areaList.remove(pendingDelete);
         placementOn.remove(pendingDelete);
-        if (selectedArea == pendingDelete) {
-            selectedArea = null;
+        if (AreaManager.selectedArea == pendingDelete) {
+            AreaManager.selectedArea = null;
         }
         pendingDelete = null;
 
@@ -194,7 +237,7 @@ public class AreaManagerScreen extends Screen {
             widget.setY(y);
             widget.setWidth(rowWidth);
             widget.setClip(listTop, listBottom);
-            widget.setSelected(widget.getArea() == selectedArea);
+            widget.setSelected(widget.getArea() == AreaManager.selectedArea);
 
             if (y + ROW_HEIGHT < listTop || y > listBottom) continue;
             widget.extractRenderState(g, mouseX, mouseY, a);
@@ -225,7 +268,7 @@ public class AreaManagerScreen extends Screen {
         super.extractRenderState(g, mouseX, mouseY, a);
         updateSmoothScroll();
         renderAreaWidgets(g, mouseX, mouseY, a);
-        infoPanel.render(g, mouseX, mouseY, a, selectedArea);
+        infoPanel.render(g, mouseX, mouseY, a, AreaManager.selectedArea);
     }
 
     @Override

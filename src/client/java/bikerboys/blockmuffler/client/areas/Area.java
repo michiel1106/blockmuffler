@@ -1,9 +1,11 @@
 package bikerboys.blockmuffler.client.areas;
 
+import bikerboys.blockmuffler.client.areas.rules.*;
 import net.minecraft.core.*;
 import net.minecraft.world.phys.*;
 
 public class Area {
+    private final AreaRule areaRule = new AreaRule();
     private AABB aabb;
     private BlockPos pos1, pos2;
     private int color;
@@ -22,6 +24,9 @@ public class Area {
         this.name = name;
     }
 
+    public AreaRule getAreaRule() {
+        return areaRule;
+    }
 
     public AABB getAabb() {
         return aabb;

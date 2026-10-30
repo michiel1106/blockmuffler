@@ -1,4 +1,4 @@
-package bikerboys.blockmuffler.client.screen;
+package bikerboys.blockmuffler.client.areas.render;
 
 import bikerboys.blockmuffler.*;
 import bikerboys.blockmuffler.client.areas.*;

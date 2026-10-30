@@ -110,6 +110,7 @@ public class AreaManager {
         if (!continueFunc()) return;
 
         BlockPos blockPos = WandUtil.raycastBlockPos();
+        if (blockPos == null) return;
         selectedArea.setPos1(blockPos);
 
         assert player != null;
@@ -123,6 +124,7 @@ public class AreaManager {
         if (!continueFunc()) return;
 
         BlockPos blockPos = WandUtil.raycastBlockPos();
+        if (blockPos == null) return;
         selectedArea.setPos2(blockPos);
 
         assert player != null;

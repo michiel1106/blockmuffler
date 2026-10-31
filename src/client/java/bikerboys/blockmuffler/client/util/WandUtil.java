@@ -31,7 +31,7 @@ public class WandUtil {
         return ((BlockHitResult) hit).getBlockPos();
     }
 
-    public static @Nullable AreaHit raycastAreaHit(double range) {
+    public static @Nullable AreaHit raycastAreaHit(double range, boolean ignoreNonSelected) {
         Entity cam = Minecraft.getInstance().getCameraEntity();
         if (cam == null) return null;
 
@@ -43,6 +43,7 @@ public class WandUtil {
         double bestDist = Double.MAX_VALUE;
 
         for (Area area : AreaManager.areaList) {
+            if (ignoreNonSelected && AreaManager.selectedArea != area) continue;
             if (!area.isRenderPlacement()) continue;
             AABB box = area.getAabb();
             AreaHit hit;

@@ -74,6 +74,11 @@ public class AreaManagerScreen extends Screen {
         public void onSelect(Area area) {
             AreaManager.selectedArea = area;
         }
+
+        @Override
+        public void onToggleEnabled(Area area) {
+            area.toggleEnabled();
+        }
     };
 
     public AreaManagerScreen() {

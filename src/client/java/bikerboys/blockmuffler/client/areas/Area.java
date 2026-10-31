@@ -12,6 +12,7 @@ public class Area {
     private String name;
     private int enclosingSize;
     private int totalVolume;
+    private boolean enabled = true;
     private int rotation = 0;
     private boolean locked = false;
     private boolean renderPlacement = false;
@@ -26,6 +27,18 @@ public class Area {
 
     public AreaRule getAreaRule() {
         return areaRule;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void toggleEnabled() {
+        this.enabled = !enabled;
     }
 
     public AABB getAabb() {

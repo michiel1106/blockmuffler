@@ -26,9 +26,11 @@ public class AreaWidget extends AbstractWidget {
         void onDelete(Area area);
 
         void onSelect(Area area);
+
+        void onToggleEnabled(Area area);
     }
 
-    private enum Action { CONFIGURE, PLACEMENT, DELETE }
+    private enum Action { CONFIGURE, PLACEMENT, DELETE, TOGGLE }
 
     private record Slot(Action action, int x0, int x1) {
         boolean contains(double mouseX) {
@@ -55,6 +57,8 @@ public class AreaWidget extends AbstractWidget {
     private static final Component LABEL_CONFIGURE = Component.literal("Configure");
     private static final Component LABEL_PLACEMENT_ON = Component.literal("Placement: ON");
     private static final Component LABEL_PLACEMENT_OFF = Component.literal("Placement: OFF");
+    private static final Component LABEL_ENABLED_ON = Component.literal("Enabled").withColor(TextColor.GREEN);
+    private static final Component LABEL_ENABLED_OFF = Component.literal("Disabled").withColor(TextColor.RED);
     private static final Component LABEL_DELETE = Component.literal("Delete");
 
     private final Area area;
@@ -95,13 +99,15 @@ public class AreaWidget extends AbstractWidget {
     private Slot[] layoutSlots(Font font) {
         int configureW = font.width(LABEL_CONFIGURE) + BTN_TEXT_PAD * 2;
         int placementW = Math.max(font.width(LABEL_PLACEMENT_ON), font.width(LABEL_PLACEMENT_OFF)) + BTN_TEXT_PAD * 2;
+        int toggleW = Math.max(font.width(LABEL_ENABLED_ON), font.width(LABEL_ENABLED_OFF)) + BTN_TEXT_PAD * 2;
         int deleteW = font.width(LABEL_DELETE) + BTN_TEXT_PAD * 2;
 
         int right = getX() + getWidth() - OUTER_PAD;
         Slot delete = new Slot(Action.DELETE, right - deleteW, right);
         Slot placement = new Slot(Action.PLACEMENT, delete.x0() - BTN_GAP - placementW, delete.x0() - BTN_GAP);
-        Slot configure = new Slot(Action.CONFIGURE, placement.x0() - BTN_GAP - configureW, placement.x0() - BTN_GAP);
-        return new Slot[]{configure, placement, delete};
+        Slot toggle = new Slot(Action.TOGGLE, placement.x0() - BTN_GAP - toggleW, placement.x0() - BTN_GAP);
+        Slot configure = new Slot(Action.CONFIGURE, toggle.x0() - BTN_GAP - configureW, toggle.x0() - BTN_GAP);
+        return new Slot[]{configure, toggle, placement, delete};
     }
 
     private Slot slotAt(double mouseX, double mouseY, Font font) {
@@ -131,6 +137,7 @@ public class AreaWidget extends AbstractWidget {
             case CONFIGURE -> listener.onConfigure(area);
             case PLACEMENT -> listener.onTogglePlacement(area);
             case DELETE -> listener.onDelete(area);
+            case TOGGLE -> listener.onToggleEnabled(area);
         }
     }
 
@@ -167,6 +174,7 @@ public class AreaWidget extends AbstractWidget {
                 case CONFIGURE -> LABEL_CONFIGURE;
                 case PLACEMENT -> area.isRenderPlacement() ? LABEL_PLACEMENT_ON : LABEL_PLACEMENT_OFF;
                 case DELETE -> LABEL_DELETE;
+                case TOGGLE -> area.isEnabled() ? LABEL_ENABLED_ON : LABEL_ENABLED_OFF;
             };
 
             int btnWidth = slot.x1() - slot.x0();

@@ -14,6 +14,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.storage.LevelResource;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.*;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -31,15 +32,14 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 public final class AreaSaveManager {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final int FORMAT_VERSION = 1;
     private static final int AUTOSAVE_INTERVAL_TICKS = 100;
     private static final int DEFAULT_MINECRAFT_PORT = 25565;
-    private static final Logger LOGGER = Logger.getLogger("BlockMuffler/AreaSaveManager");
+    private static final Logger LOGGER = LoggerFactory.getLogger("BlockMuffler/AreaSaveManager");
 
     @Nullable
     private static SaveTarget activeTarget;
@@ -211,7 +211,7 @@ public final class AreaSaveManager {
             SaveData data = GSON.fromJson(reader, SaveData.class);
             if (data == null || data.version != FORMAT_VERSION || data.areas == null) {
                 activeFileCanBeSaved = false;
-                LOGGER.warning("Area save has an unsupported or invalid format; leaving it untouched: " + file);
+                LOGGER.warn("Area save has an unsupported or invalid format; leaving it untouched: {}", file);
                 return;
             }
 
@@ -229,7 +229,7 @@ public final class AreaSaveManager {
             LOGGER.info("Loaded " + loadedAreas.size() + " areas from " + file.getFileName());
         } catch (IOException | RuntimeException exception) {
             activeFileCanBeSaved = false;
-            LOGGER.log(Level.SEVERE, "Could not read area save; preserving the existing file: " + file, exception);
+            LOGGER.warn("Could not read area save; preserving the existing file: " + file, exception);
         }
     }
 
@@ -243,6 +243,7 @@ public final class AreaSaveManager {
         BlockPos pos2 = new BlockPos(saved.pos2[0], saved.pos2[1], saved.pos2[2]);
         Area area = new Area(pos1, pos2, saved.color, saved.name == null ? "Unnamed" : saved.name);
 
+        area.setEnabled(saved.enabled);
         area.setLocked(saved.locked);
         area.setRenderPlacement(saved.renderPlacement);
         area.setRotation(saved.rotation);
@@ -335,11 +336,11 @@ public final class AreaSaveManager {
                 Files.move(tempFile, file, StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (IOException | RuntimeException exception) {
-            LOGGER.log(Level.SEVERE, "Could not save areas to " + file, exception);
+            LOGGER.warn("Could not save areas to " + file, exception);
             try {
                 Files.deleteIfExists(tempFile);
             } catch (IOException cleanupException) {
-                LOGGER.log(Level.WARNING, "Could not remove temporary area save " + tempFile, cleanupException);
+                LOGGER.warn("Could not remove temporary area save " + tempFile, cleanupException);
             }
         }
     }
@@ -353,6 +354,7 @@ public final class AreaSaveManager {
         AreaData saved = new AreaData();
         saved.pos1 = blockPosArray(area.getPos1());
         saved.pos2 = blockPosArray(area.getPos2());
+        saved.enabled = area.isEnabled();
         saved.color = area.getColor();
         saved.name = area.getName();
         saved.locked = area.isLocked();
@@ -418,6 +420,7 @@ public final class AreaSaveManager {
         private String name;
         private boolean locked;
         private boolean renderPlacement;
+        private boolean enabled;
         private int rotation;
         private RuleData rule = new RuleData();
     }

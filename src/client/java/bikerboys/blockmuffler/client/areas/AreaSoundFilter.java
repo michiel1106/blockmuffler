@@ -33,6 +33,7 @@ public final class AreaSoundFilter {
 
         float result = 1.0f;
         for (Area area : AreaManager.areaList) {
+            if (!area.isEnabled()) continue;
             if (!area.getAabb().contains(x, y, z)) continue;
 
             AreaRule rule = area.getAreaRule();

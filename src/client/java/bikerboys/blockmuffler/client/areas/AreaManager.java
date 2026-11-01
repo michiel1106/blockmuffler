@@ -1,6 +1,7 @@
 package bikerboys.blockmuffler.client.areas;
 
 import bikerboys.blockmuffler.client.areas.render.*;
+import bikerboys.blockmuffler.client.config.*;
 import bikerboys.blockmuffler.client.util.*;
 import com.mojang.blaze3d.pipeline.*;
 import com.mojang.blaze3d.systems.*;
@@ -230,6 +231,13 @@ public class AreaManager {
                             box,
                             area.getColor()
                     );
+                } else if (BlockMufflerConfig.renderBoxSidesWhenInside) {
+                    RenderUtils.drawBoxSides(
+                            poseStack.last(),
+                            fillBuilder,
+                            box,
+                            area.getColor()
+                    );
                 }
 
                 RenderUtils.drawBoxLines(
@@ -289,7 +297,7 @@ public class AreaManager {
                             () -> "Block Muffler Areas",
                             target.getColorTextureView(),
                             Optional.empty(),
-                            null,
+                            target.getDepthTextureView(),
                             OptionalDouble.empty()
                     )) {
 
@@ -384,6 +392,33 @@ public class AreaManager {
                 0,
                 0
         );
+    }
+
+
+
+    private static void drawInsideSides(PoseStack.Pose pose, BufferBuilder b, AABB box, int color, Vec3 cam) {
+        color = ARGB.color((int) (ARGB.alpha(color) * 0.5f), color);
+
+        float x0 = (float) box.minX, x1 = (float) box.maxX;
+        float y0 = (float) box.minY, y1 = (float) box.maxY;
+        float z0 = (float) box.minZ, z1 = (float) box.maxZ;
+
+        quad(pose, b, color, x0,y0,z0, x0,y0,z1, x0,y1,z1, x0,y1,z0);
+        quad(pose, b, color, x1,y0,z0, x1,y1,z0, x1,y1,z1, x1,y0,z1);
+        quad(pose, b, color, x0,y0,z0, x1,y0,z0, x1,y0,z1, x0,y0,z1);
+        quad(pose, b, color, x0,y1,z0, x0,y1,z1, x1,y1,z1, x1,y1,z0);
+        quad(pose, b, color, x0,y0,z0, x0,y1,z0, x1,y1,z0, x1,y0,z0);
+        quad(pose, b, color, x0,y0,z1, x1,y0,z1, x1,y1,z1, x0,y1,z1);
+    }
+
+
+    private static void quad(PoseStack.Pose pose, BufferBuilder b, int color,
+                             float ax, float ay, float az, float bx, float by, float bz,
+                             float cx, float cy, float cz, float dx, float dy, float dz) {
+        b.addVertex(pose, ax, ay, az).setColor(color);
+        b.addVertex(pose, bx, by, bz).setColor(color);
+        b.addVertex(pose, cx, cy, cz).setColor(color);
+        b.addVertex(pose, dx, dy, dz).setColor(color);
     }
 }
 

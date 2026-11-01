@@ -118,4 +118,49 @@ public class RenderUtils {
         lines.addVertex(pose, bx, by, bz).setColor(color).setNormal(pose, dx, dy, dz).setLineWidth(width);
     }
 
+    public static void drawBoxSides(
+            PoseStack.Pose pose,
+            VertexConsumer buffer,
+            AABB box,
+            int color
+    ) {
+        float minX = (float) box.minX;
+        float minY = (float) box.minY;
+        float minZ = (float) box.minZ;
+
+        float maxX = (float) box.maxX;
+        float maxY = (float) box.maxY;
+        float maxZ = (float) box.maxZ;
+
+        buffer.addVertex(pose, minX, minY, minZ).setColor(color);
+        buffer.addVertex(pose, minX, minY, maxZ).setColor(color);
+        buffer.addVertex(pose, minX, maxY, maxZ).setColor(color);
+        buffer.addVertex(pose, minX, maxY, minZ).setColor(color);
+
+        buffer.addVertex(pose, maxX, minY, minZ).setColor(color);
+        buffer.addVertex(pose, maxX, maxY, minZ).setColor(color);
+        buffer.addVertex(pose, maxX, maxY, maxZ).setColor(color);
+        buffer.addVertex(pose, maxX, minY, maxZ).setColor(color);
+
+        buffer.addVertex(pose, minX, minY, minZ).setColor(color);
+        buffer.addVertex(pose, minX, maxY, minZ).setColor(color);
+        buffer.addVertex(pose, maxX, maxY, minZ).setColor(color);
+        buffer.addVertex(pose, maxX, minY, minZ).setColor(color);
+
+        buffer.addVertex(pose, minX, minY, maxZ).setColor(color);
+        buffer.addVertex(pose, maxX, minY, maxZ).setColor(color);
+        buffer.addVertex(pose, maxX, maxY, maxZ).setColor(color);
+        buffer.addVertex(pose, minX, maxY, maxZ).setColor(color);
+
+        buffer.addVertex(pose, minX, maxY, minZ).setColor(color);
+        buffer.addVertex(pose, minX, maxY, maxZ).setColor(color);
+        buffer.addVertex(pose, maxX, maxY, maxZ).setColor(color);
+        buffer.addVertex(pose, maxX, maxY, minZ).setColor(color);
+
+        buffer.addVertex(pose, minX, minY, minZ).setColor(color);
+        buffer.addVertex(pose, maxX, minY, minZ).setColor(color);
+        buffer.addVertex(pose, maxX, minY, maxZ).setColor(color);
+        buffer.addVertex(pose, minX, minY, maxZ).setColor(color);
+    }
+
 }

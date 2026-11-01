@@ -2,6 +2,7 @@ package bikerboys.blockmuffler.client.areas.render;
 
 import bikerboys.blockmuffler.*;
 import bikerboys.blockmuffler.client.areas.*;
+import bikerboys.blockmuffler.client.config.*;
 import bikerboys.blockmuffler.client.util.*;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.*;
 import net.fabricmc.fabric.impl.client.rendering.hud.*;
@@ -12,37 +13,64 @@ import net.minecraft.network.chat.*;
 import net.minecraft.resources.*;
 import org.jspecify.annotations.*;
 
+import java.util.*;
+
 public class AreaEditRenderManager {
-
     public static void init() {
-        HudElementRegistryImpl.attachElementAfter(VanillaHudElements.SUBTITLES, Identifier.fromNamespaceAndPath(BlockMuffler.MOD_ID, "block_muffler"), new HudElement() {
-            @Override
-            public void extractRenderState(@NonNull GuiGraphicsExtractor g, @NonNull DeltaTracker deltaTracker) {
-                if (!WandUtil.isEditModeEnabled(Minecraft.getInstance().player)) return;
-                int lineHeight = Minecraft.getInstance().font.lineHeight;
+        HudElementRegistryImpl.attachElementAfter(
+                VanillaHudElements.SUBTITLES,
+                Identifier.fromNamespaceAndPath(BlockMuffler.MOD_ID, "block_muffler"),
+                new HudElement() {
+                    private static final int MARGIN = 4;
+                    private static final int LINE_SPACING = 1;
 
-                String selectedAreaText = "Currently selected area: " + AreaManager.getSelectedAreaOrNone();
+                    @Override
+                    public void extractRenderState(@NonNull GuiGraphicsExtractor g, @NonNull DeltaTracker deltaTracker) {
+                        Minecraft mc = Minecraft.getInstance();
+                        if (!WandUtil.isEditModeEnabled(mc.player)) return;
+                        Font font = mc.font;
 
-                renderText(g, Component.nullToEmpty(selectedAreaText), getNorWidth(0.005f, g), getNorHeight(0.01f, g));
+                        List<Component> lines = new ArrayList<>();
+                        lines.add(Component.literal("Currently selected area: " + AreaManager.getSelectedAreaOrNone()));
 
-                Area selectedArea = AreaManager.selectedArea;
-                if (selectedArea != null) {
-                    String origin = "Origin: " + selectedArea.getPos1().toShortString();
-                    Vec3i enclosingSize = selectedArea.getEnclosingSize();
-                    String size = String.format("Size: %s x %s x %s", enclosingSize.getX(), enclosingSize.getY(), enclosingSize.getZ());
-                    String rotation = String.format("Rotation: %s", selectedArea.getRotation());
-                    Component placementEnabled = Component.literal("Placement: ").append(Component.literal(String.valueOf(selectedArea.isRenderPlacement())).withColor(selectedArea.isRenderPlacement() ? TextColor.GREEN : TextColor.RED));
-                    Component placementLocked = Component.literal("Locked: ").append(Component.literal(String.valueOf(selectedArea.isLocked())).withColor(selectedArea.isLocked() ? TextColor.GREEN : TextColor.RED));
+                        Area area = AreaManager.selectedArea;
+                        if (area != null) {
+                            Vec3i size = area.getEnclosingSize();
+                            lines.add(Component.literal("Origin: " + area.getPos1().toShortString()));
+                            lines.add(Component.literal(String.format("Size: %s x %s x %s", size.getX(), size.getY(), size.getZ())));
+                            lines.add(Component.literal("Rotation: " + area.getRotation()));
+                            lines.add(Component.literal("Placement: ").append(
+                                    Component.literal(String.valueOf(area.isRenderPlacement()))
+                                            .withColor(area.isRenderPlacement() ? TextColor.GREEN : TextColor.RED)));
+                            lines.add(Component.literal("Locked: ").append(
+                                    Component.literal(String.valueOf(area.isLocked()))
+                                            .withColor(area.isLocked() ? TextColor.GREEN : TextColor.RED)));
+                        }
 
+                        int lineStep = font.lineHeight + LINE_SPACING;
+                        int blockWidth = lines.stream().mapToInt(font::width).max().orElse(0);
+                        int blockHeight = lines.size() * lineStep - LINE_SPACING;
 
-                    renderText(g, Component.literal(origin), getNorWidth(0.005f, g), getNorHeight(0.01f, g) + (lineHeight + 1));
-                    renderText(g, Component.literal(size), getNorWidth(0.005f, g), getNorHeight(0.01f, g) + (lineHeight + 1) * 2);
-                    renderText(g, Component.literal(rotation), getNorWidth(0.005f, g), getNorHeight(0.01f, g) + (lineHeight + 1) * 3);
-                    renderText(g, placementEnabled, getNorWidth(0.005f, g), getNorHeight(0.01f, g) + (lineHeight + 1) * 4);
-                    renderText(g, placementLocked, getNorWidth(0.005f, g), getNorHeight(0.01f, g) + (lineHeight + 1) * 5);
-                }
-            }
-        });
+                        var alignment = BlockMufflerConfig.hudAlignmentOptions;
+                        boolean right = switch (alignment) {
+                            case TOP_RIGHT, BOTTOM_RIGHT -> true;
+                            default -> false;
+                        };
+                        boolean bottom = switch (alignment) {
+                            case BOTTOM_LEFT, BOTTOM_RIGHT -> true;
+                            default -> false;
+                        };
+
+                        int x = right ? g.guiWidth() - MARGIN - blockWidth : MARGIN;
+                        int y = bottom ? g.guiHeight() - MARGIN - blockHeight : MARGIN;
+
+                        for (int i = 0; i < lines.size(); i++) {
+                            Component line = lines.get(i);
+                            int lineX = right ? x + blockWidth - font.width(line) : x;
+                            renderText(g, line, lineX, y + i * lineStep);
+                        }
+                    }
+                });
     }
 
     public static void renderText(GuiGraphicsExtractor graphics, Component text, int x, int y) {

@@ -1,5 +1,6 @@
 package bikerboys.blockmuffler.client.areas;
 
+import bikerboys.blockmuffler.client.IOptions.*;
 import bikerboys.blockmuffler.client.areas.render.*;
 import bikerboys.blockmuffler.client.config.*;
 import bikerboys.blockmuffler.client.util.*;
@@ -150,14 +151,34 @@ public class AreaManager {
         if (!continueFunc()) return;
 
         WandUtil.AreaHit areaHit = WandUtil.raycastAreaHit(AreaManager.RAYCAST_RANGE, true);
-        if (areaHit == null) return;
+
         assert selectedArea != null;
 
-        if (grow) {
-            selectedArea.grow(areaHit.face());
-        } else {
-            selectedArea.shrink(areaHit.face());
+        if (BlockMufflerConfig.areaEditOptions == EditOptions.BOX_FACE) {
+            if (areaHit == null) return;
+            if (grow) {
+                selectedArea.grow(areaHit.face());
+            } else {
+                selectedArea.shrink(areaHit.face());
+            }
+        } else if (BlockMufflerConfig.areaEditOptions == EditOptions.LOOK_DIRECTIOM) {
+            if (!grow) {
+                if (Utils.isInArea(Minecraft.getInstance().getCameraEntity().getEyePosition(), selectedArea)) {
+                    selectedArea.shrink(Minecraft.getInstance().player.getNearestViewDirection());
+                } else {
+                    selectedArea.grow(Minecraft.getInstance().player.getNearestViewDirection());
+                }
+            } else {
+                if (Utils.isInArea(Minecraft.getInstance().getCameraEntity().getEyePosition(), selectedArea)) {
+                    selectedArea.grow(Minecraft.getInstance().player.getNearestViewDirection());
+                } else {
+                    selectedArea.shrink(Minecraft.getInstance().player.getNearestViewDirection());
+                }
+            }
         }
+
+
+
     }
 
     public static void toggleAllPlacements() {

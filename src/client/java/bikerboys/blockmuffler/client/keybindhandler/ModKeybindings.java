@@ -44,6 +44,7 @@ public class ModKeybindings {
         laterWandMappings.forEach(KeyMappingHelper::registerKeyMapping);
 
         ClientTickEvents.START_CLIENT_TICK.register(ModKeybindings::tick);
+        ClientTickEvents.END_CLIENT_TICK.register(ModKeybindings::tick);
     }
 
     private static void tick(Minecraft mc) {
@@ -66,9 +67,14 @@ public class ModKeybindings {
         if (setFirstPoint.consumeClick()) AreaManager.setFirstPoint();
         if (setSecondPoint.consumeClick()) AreaManager.setSecondPoint();
 
-        if (BlockMufflerConfig.areaKeybindOptions == KeybindOptions.REGULAR_KEYBINDS) {
-            if (growAreaSize.consumeClick()) AreaManager.changeAreaSize(true);
-            if (shrinkAreaSize.consumeClick()) AreaManager.changeAreaSize(false);
+        if (BlockMufflerConfig.areaKeybindOptions == KeybindOptions.REGULAR_KEYBINDS || BlockMufflerConfig.areaKeybindOptions == KeybindOptions.BOTH) {
+            if (growAreaSize.consumeClick()) {
+                AreaManager.changeAreaSize(true);
+            }
+
+            if (shrinkAreaSize.consumeClick()) {
+                AreaManager.changeAreaSize(false);
+            }
         } else {
             if (growAreaSize.consumeClick() || shrinkAreaSize.consumeClick()) {
                 Utils.sendKeyNotWorkingMessage(mc);

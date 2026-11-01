@@ -1,6 +1,9 @@
 {
   "blockmuffler.midnightconfig.areaKeybindOptions": "Area Size Keybind options",
 
+  "blockmuffler.midnightconfig.category.Quick_Settings": "Quick Settings",
+  "blockmuffler.midnightconfig.category.Rendering": "Rendering",
+  "blockmuffler.midnightconfig.category.General": "General Settings",
 
 
   "blockmuffler.message.key_disabled": "The key you are trying to press is disabled right now! Please check the config.",
@@ -8,5 +11,25 @@
 
   "blockmuffler.midnightconfig.areaKeybindOptions.REGULAR_KEYBINDS": "Regular Keybinds",
   "blockmuffler.midnightconfig.areaKeybindOptions.SPECIAL_KEY_PLUS_SCROLL": "Special Key + Scroll",
-  "blockmuffler.midnightconfig.areaKeybindOptions.tooltip": "Decides whether growing or shrinking an area uses the vanilla keybinds, or the way litematica does it, where you can hold a key configurable in keybinds, and scroll."
+  "blockmuffler.midnightconfig.areaKeybindOptions.tooltip": "Decides whether growing or shrinking an area uses the vanilla keybinds, or the way litematica does it, where you can hold a key configurable in keybinds, and scroll.",
+
+  "blockmuffler.midnightconfig.areaEditOptions.LOOK_DIRECTION": "Look Direction",
+  "blockmuffler.midnightconfig.areaEditOptions.BOX_FACE": "Box Face",
+  "blockmuffler.midnightconfig.areaEditOptions.tooltip": "Uses either the side of the box the player is looking at, or the direction the player is looking, to choose which side to grow or shrink the box to.",
+
+
+  "blockmuffler.midnightconfig.hudAlignmentOptions": "Text Alignment",
+  "blockmuffler.midnightconfig.hudAlignmentOptions.tooltip": "Decides where the 'Currently selected area:' text is rendered.",
+
+  "blockmuffler.midnightconfig.TOP_LEFT" : "Top Left",
+  "blockmuffler.midnightconfig.TOP_RIGHT" : "Top Right",
+  "blockmuffler.midnightconfig.BOTTOM_RIGHT" : "Bottom Right",
+  "blockmuffler.midnightconfig.BOTTOM_LEFT" : "Bottom Left",
+
+  "blockmuffler.midnightconfig.renderBoxSidesWhenInside": "Render box when inside",
+  "blockmuffler.midnightconfig.renderBoxSidesWhenInside.tooltip": "Disable to stop rendering the box (except the lines) when inside.",
+
+  "blockmuffler.midnightconfig.rendering": "Rendering",
+  "blockmuffler.midnightconfig.editmode": "Edit mode",
+  "blockmuffler.midnightconfig.editmode.tooltip": "Disables/enables editing of areas with wand."
 }

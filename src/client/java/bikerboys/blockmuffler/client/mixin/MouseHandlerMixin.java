@@ -23,7 +23,7 @@ public class MouseHandlerMixin {
     @Inject(method = "onScroll", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isSpectator()Z", shift = At.Shift.BEFORE), cancellable = true)
     private void onScrollRedirect(long handle, double xoffset, double yoffset, CallbackInfo ci, @Local(name = "wheel") int wheel) {
         if (!WandUtil.isEditModeEnabled(minecraft.player)) return;
-        if (!(BlockMufflerConfig.areaKeybindOptions == KeybindOptions.SPECIAL_KEY_PLUS_SCROLL)) return;
+        if (BlockMufflerConfig.areaKeybindOptions == KeybindOptions.REGULAR_KEYBINDS) return;
         if (!ModKeybindings.specialKey.isDown()) return;
 
         float offsetThing = Utils.getModifiedFloat(wheel);

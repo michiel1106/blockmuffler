@@ -1,10 +1,14 @@
 package bikerboys.blockmuffler.client.IOptions;
 
 import net.minecraft.util.*;
+import org.jspecify.annotations.*;
 
 public enum KeybindOptions implements StringRepresentable {
     REGULAR_KEYBINDS("blockmuffler.midnightconfig.areaKeybindOptions.REGULAR_KEYBINDS"),
-    SPECIAL_KEY_PLUS_SCROLL("blockmuffler.midnightconfig.areaKeybindOptions.SPECIAL_KEY_PLUS_SCROLL");
+    SPECIAL_KEY_PLUS_SCROLL("blockmuffler.midnightconfig.areaKeybindOptions.SPECIAL_KEY_PLUS_SCROLL"),
+    BOTH("blockmuffler.midnightconfig.areaKeybindOptions.both"),
+
+    ;
 
 
     final String id;
@@ -13,7 +17,7 @@ public enum KeybindOptions implements StringRepresentable {
     }
 
     @Override
-    public String getSerializedName() {
+    public @NonNull String getSerializedName() {
         return this.id;
     }
 }

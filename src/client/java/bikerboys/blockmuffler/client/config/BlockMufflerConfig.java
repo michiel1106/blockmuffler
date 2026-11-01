@@ -7,16 +7,19 @@ import net.minecraft.client.*;
 import net.minecraft.resources.*;
 
 public class BlockMufflerConfig extends MidnightConfig {
-    public static final String QUICK_SETTINGS = "Quick Settings";
+    public static final String QUICK_SETTINGS = "Quick_Settings";
     public static final String GENERAL_SETTINGS = "General";
     public static final String RENDERING = "Rendering";
 
     @Entry(category = QUICK_SETTINGS) public static Identifier wand = Identifier.fromNamespaceAndPath("minecraft", "stick");
-    @Entry(category = QUICK_SETTINGS) public static KeybindOptions areaKeybindOptions = KeybindOptions.SPECIAL_KEY_PLUS_SCROLL;
-    @Entry(category = QUICK_SETTINGS) public static boolean renderBoxSidesWhenInside = false;
     @Entry(category = QUICK_SETTINGS) public static boolean rendering = false;
     @Entry(category = QUICK_SETTINGS) public static boolean editMode = false;
 
+    @Entry(category = GENERAL_SETTINGS) public static KeybindOptions areaKeybindOptions = KeybindOptions.SPECIAL_KEY_PLUS_SCROLL;
+    @Entry(category = GENERAL_SETTINGS) public static EditOptions areaEditOptions = EditOptions.BOX_FACE;
+
+    @Entry(category = RENDERING) public static AlignmentOptions hudAlignmentOptions = AlignmentOptions.TOP_LEFT;
+    @Entry(category = RENDERING) public static boolean renderBoxSidesWhenInside = false;
 
 
 }

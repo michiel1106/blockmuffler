@@ -90,11 +90,7 @@ public class AreaManager {
     public static boolean continueFunc() {
         LocalPlayer player = Minecraft.getInstance().player;
         if (!WandUtil.isEditModeEnabled(player)) {
-            if (player != null) {
-                if (BlockMufflerConfig.logEditMode) {
-                    player.sendOverlayMessage(Component.literal("Editmode disabled. To disable this message, disable 'Log Edit Mode'."));
-                }
-            }
+
             return false;
         }
         if (selectedArea == null) return false;
@@ -109,7 +105,14 @@ public class AreaManager {
 
     public static void setFirstPoint() {
         LocalPlayer player = Minecraft.getInstance().player;
-        if (!continueFunc()) return;
+        if (!continueFunc()) {
+            if (WandUtil.isHoldingWand(player)) {
+                if (BlockMufflerConfig.logEditMode) {
+                    player.sendOverlayMessage(Component.literal("Editmode disabled. To disable this message, disable 'Log Edit Mode'."));
+                }
+            }
+            return;
+        }
 
         BlockPos blockPos = WandUtil.raycastBlockPos();
         if (blockPos == null) return;
@@ -123,7 +126,15 @@ public class AreaManager {
 
     public static void setSecondPoint() {
         LocalPlayer player = Minecraft.getInstance().player;
-        if (!continueFunc()) return;
+        if (!continueFunc()) {
+            if (WandUtil.isHoldingWand(player)) {
+                if (BlockMufflerConfig.logEditMode) {
+                    player.sendOverlayMessage(Component.literal("Editmode disabled. To disable this message, disable 'Log Edit Mode'."));
+                }
+            }
+            return;
+        }
+
 
         BlockPos blockPos = WandUtil.raycastBlockPos();
         if (blockPos == null) return;

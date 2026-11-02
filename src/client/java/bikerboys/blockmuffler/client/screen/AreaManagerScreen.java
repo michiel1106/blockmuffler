@@ -1,7 +1,10 @@
 package bikerboys.blockmuffler.client.screen;
 
+import bikerboys.blockmuffler.*;
 import bikerboys.blockmuffler.client.areas.*;
+import bikerboys.blockmuffler.client.config.*;
 import bikerboys.blockmuffler.client.screen.widget.*;
+import eu.midnightdust.lib.config.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.gui.components.*;
@@ -32,6 +35,9 @@ public class AreaManagerScreen extends Screen {
     private static final int FOOTER_HEIGHT = 33;
     private static final int BUTTON_HEIGHT = 20;
     private static final int DONE_WIDTH = 150;
+    private static final int EDIT_BUTTON_WIDTH = 90;
+    private static final int EDIT_BUTTON_GAP = 4;
+    private static final int RENDER_BUTTON_WIDTH = 90;
 
     private static final int DEFAULT_SIZE = 1;
     private static final int[] AREA_COLORS = {colorFromFloat(0.5f, 0, 1, 0), colorFromFloat(0.5f, 0, 1, 1), ARGB.colorFromFloat(0.5f, 1, 1, 0), ARGB.colorFromFloat(0.5f, 1, 0, 0), ARGB.colorFromFloat(0.5f, 1, 0, 1), ARGB.colorFromFloat(0.5f, 1, 1, 1)};
@@ -42,6 +48,8 @@ public class AreaManagerScreen extends Screen {
     private final AreaInfoPanel infoPanel = new AreaInfoPanel();
 
     private EditBox searchBar;
+    private Button editModeButton;
+    private Button renderButton;
     private String searchText = "";
 
     private int listLeft, listTop, listRight, listBottom, infoLeft;
@@ -98,7 +106,11 @@ public class AreaManagerScreen extends Screen {
         listBottom = height - FOOTER_HEIGHT;
 
         int columnCenter = (listLeft + listRight) / 2;
-        int searchWidth = Math.min(listRight - listLeft - LIST_INSET * 2, SEARCH_MAX_WIDTH);
+        int buttonsWidth = EDIT_BUTTON_WIDTH + RENDER_BUTTON_WIDTH + EDIT_BUTTON_GAP * 2;
+        int searchWidth = Math.min(listRight - listLeft - LIST_INSET * 2 - buttonsWidth, SEARCH_MAX_WIDTH);
+        int searchX = columnCenter - (searchWidth + buttonsWidth) / 2;
+        int editX = searchX + searchWidth + EDIT_BUTTON_GAP;
+        int renderX = editX + EDIT_BUTTON_WIDTH + EDIT_BUTTON_GAP;
         int buttonY = listBottom + SEPARATOR_THICKNESS + (FOOTER_HEIGHT - SEPARATOR_THICKNESS - BUTTON_HEIGHT) / 2;
         int doneWidth = Math.min(DONE_WIDTH, listRight - listLeft - LIST_INSET * 2);
 
@@ -108,7 +120,7 @@ public class AreaManagerScreen extends Screen {
         addRenderableWidget(new PanelButton(infoLeft + LIST_INSET, buttonY, infoWidth - LIST_INSET * 2, BUTTON_HEIGHT, Component.literal("Create new area"), this::createArea));
         addRenderableWidget(new PanelButton(columnCenter - doneWidth / 2, buttonY, doneWidth, BUTTON_HEIGHT, Component.literal("Done"), this::onClose));
 
-        searchBar = new EditBox(font, columnCenter - searchWidth / 2, SEARCH_Y, searchWidth, SEARCH_HEIGHT, Component.literal("Area Searchbox"));
+        searchBar = new EditBox(font, searchX, SEARCH_Y, searchWidth, SEARCH_HEIGHT, Component.literal("Area Searchbox"));
         searchBar.setHint(Component.literal("Search areas..."));
         searchBar.setValue(searchText);
         searchBar.setResponder(s -> {
@@ -117,10 +129,48 @@ public class AreaManagerScreen extends Screen {
             scrollTarget = 0;
             scrollCurrent = 0;
         });
+
+        editModeButton = Button.builder(editModeLabel(), this::onPressToggleButton)
+                .bounds(editX, SEARCH_Y, EDIT_BUTTON_WIDTH, SEARCH_HEIGHT)
+                .build();
+
+        renderButton = Button.builder(renderLabel(), this::onPressRenderButton)
+                .bounds(renderX, SEARCH_Y, RENDER_BUTTON_WIDTH, SEARCH_HEIGHT)
+                .build();
+
         addRenderableWidget(searchBar);
+        addRenderableWidget(editModeButton);
+        addRenderableWidget(renderButton);
         setInitialFocus(searchBar);
 
         buildWidgets();
+    }
+
+
+    private Component renderLabel() {
+        return Component.literal("Rendering: ")
+                .append(BlockMufflerConfig.rendering
+                        ? Component.literal("ON").withColor(TextColor.GREEN)
+                        : Component.literal("OFF").withColor(TextColor.RED));
+    }
+
+    private void onPressRenderButton(Button button) {
+        BlockMufflerConfig.rendering = !BlockMufflerConfig.rendering;
+        MidnightConfig.write(BlockMuffler.MOD_ID);
+        button.setMessage(renderLabel());
+    }
+
+    private Component editModeLabel() {
+        return Component.literal("Editmode: ")
+                .append(BlockMufflerConfig.editMode
+                        ? Component.literal("ON").withColor(TextColor.GREEN)
+                        : Component.literal("OFF").withColor(TextColor.RED));
+    }
+
+    private void onPressToggleButton(Button button) {
+        BlockMufflerConfig.editMode = !BlockMufflerConfig.editMode;
+        MidnightConfig.write(BlockMuffler.MOD_ID);
+        button.setMessage(editModeLabel());
     }
 
     private void createArea() {

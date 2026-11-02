@@ -20,6 +20,8 @@ public class MouseHandlerMixin {
     @Final
     private Minecraft minecraft;
 
+
+
     @Inject(method = "onScroll", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isSpectator()Z", shift = At.Shift.BEFORE), cancellable = true)
     private void onScrollRedirect(long handle, double xoffset, double yoffset, CallbackInfo ci, @Local(name = "wheel") int wheel) {
         if (!WandUtil.isEditModeEnabled(minecraft.player)) return;

@@ -5,6 +5,7 @@ import bikerboys.blockmuffler.client.config.*;
 import net.minecraft.client.*;
 import net.minecraft.core.*;
 import net.minecraft.core.registries.*;
+import net.minecraft.network.chat.*;
 import net.minecraft.resources.*;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.*;
@@ -16,7 +17,19 @@ import java.util.*;
 public class WandUtil {
 
     public static boolean isEditModeEnabled(@Nullable Player player) {
+        if (!BlockMufflerConfig.editMode) {
+            return false;
+        }
         if (player == null) return false;
+
+        Identifier key = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem());
+
+        return key.equals(BlockMufflerConfig.wand);
+    }
+
+    public static boolean isHoldingWand(@Nullable Player player) {
+        if (player == null) return false;
+
 
         Identifier key = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem());
 

@@ -1,5 +1,6 @@
 package bikerboys.blockmuffler.client.areas;
 
+import bikerboys.blockmuffler.*;
 import bikerboys.blockmuffler.client.IOptions.*;
 import bikerboys.blockmuffler.client.areas.render.*;
 import bikerboys.blockmuffler.client.config.*;
@@ -52,6 +53,12 @@ public class AreaManager {
             } else {
                 selectedArea = null;
             }
+        } else {
+            if (player != null && WandUtil.isHoldingWand(player)) {
+                if (BlockMufflerConfig.logEditMode) {
+                    player.sendOverlayMessage(Component.literal("Editmode disabled. To disable this message, disable 'Log Edit Mode'."));
+                }
+            }
         }
     }
 
@@ -71,35 +78,6 @@ public class AreaManager {
         areaList.add(new Area(pos1, pos2, color, name));
     }
 
-
-
-    /*
-    private static void render(LevelRenderContext context) {
-        Vec3 camera = context.levelState().cameraRenderState.pos;
-
-        context.poseStack().pushPose();
-        context.poseStack().translate(-camera.x, -camera.y, -camera.z);
-
-        areaList.stream().filter(Area::isRenderPlacement).forEach(area -> {
-            context.submitNodeCollector().submitCustomGeometry(context.poseStack(), AreaRenderTypes.FILL, (pose, buffer) -> {
-                int color = area.getColor();
-
-                RenderUtils.drawFilledBox(pose, buffer, area.getAabb(), color);
-            });
-
-
-            context.submitNodeCollector().submitCustomGeometry(context.poseStack(), AreaRenderTypes.LINES, (pose, buffer) ->
-                    RenderUtils.drawBoxLines(pose, buffer, area.getAabb(), area));
-        });
-
-        context.poseStack().popPose();
-
-    }
-
-     */
-
-
-
     public static String getSelectedAreaOrNone() {
         if (selectedArea != null) {
             return selectedArea.getName();
@@ -111,10 +89,19 @@ public class AreaManager {
 
     public static boolean continueFunc() {
         LocalPlayer player = Minecraft.getInstance().player;
-        if (!WandUtil.isEditModeEnabled(player)) return false;
+        if (!WandUtil.isEditModeEnabled(player)) {
+            if (player != null) {
+                if (BlockMufflerConfig.logEditMode) {
+                    player.sendOverlayMessage(Component.literal("Editmode disabled. To disable this message, disable 'Log Edit Mode'."));
+                }
+            }
+            return false;
+        }
         if (selectedArea == null) return false;
         if (selectedArea.isLocked()) {
-            player.sendOverlayMessage(Component.literal("Area: " + selectedArea.getName() + " is locked! Unlock it to edit it again!"));
+            if (BlockMufflerConfig.logAreaLocked) {
+                player.sendOverlayMessage(Component.literal("Area: " + selectedArea.getName() + " is locked! Unlock it to edit it again! To disable this message, disable 'Log Area Locked'"));
+            }
             return false;
         }
         return true;
@@ -181,11 +168,8 @@ public class AreaManager {
 
     }
 
-    public static void toggleAllPlacements() {
-        areaList.forEach(Area::toggleRenderPlacement);
-    }
-
     public static void renderOverlay(CameraRenderState cameraState) {
+        if (!BlockMufflerConfig.rendering) return;
         Minecraft minecraft = Minecraft.getInstance();
 
         if (minecraft.level == null || areaList.isEmpty()) {

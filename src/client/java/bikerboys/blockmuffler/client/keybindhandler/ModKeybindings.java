@@ -11,6 +11,7 @@ import eu.midnightdust.lib.config.*;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.*;
 import net.fabricmc.fabric.api.client.keymapping.v1.*;
 import net.minecraft.client.*;
+import net.minecraft.network.chat.*;
 import net.minecraft.resources.*;
 
 import java.util.*;
@@ -27,11 +28,11 @@ public class ModKeybindings {
 
     public static KeyMapping specialKey = r(new KeyMapping("blockmuffler.key.specialkey", InputConstants.KEY_LALT, blockMuffler));
 
-    public static KeyMapping toggleAllPlacements = r(new KeyMapping("blockmuffler.key.toggleallplacements", InputConstants.KEY_END, blockMuffler));
+    public static KeyMapping toggleRendering = r(new KeyMapping("blockmuffler.key.toggleRendering", InputConstants.KEY_END, blockMuffler));
 
-    public static KeyMapping selectArea = wand(new KeyMapping("blockmuffler.key.selectarea", InputConstants.MOUSE_BUTTON_MIDDLE, blockMuffler));
-    public static KeyMapping setFirstPoint = wand(new KeyMapping("blockmuffler.key.setfirstpoint", InputConstants.MOUSE_BUTTON_LEFT, blockMuffler));
-    public static KeyMapping setSecondPoint = wand(new KeyMapping("blockmuffler.key.setsecondpoint", InputConstants.MOUSE_BUTTON_RIGHT, blockMuffler));
+    public static KeyMapping selectArea = wand(new KeyMapping("blockmuffler.key.selectarea", InputConstants.Type.MOUSE, InputConstants.MOUSE_BUTTON_MIDDLE, blockMuffler));
+    public static KeyMapping setFirstPoint = wand(new KeyMapping("blockmuffler.key.setfirstpoint", InputConstants.Type.MOUSE, InputConstants.MOUSE_BUTTON_LEFT, blockMuffler));
+    public static KeyMapping setSecondPoint = wand(new KeyMapping("blockmuffler.key.setsecondpoint", InputConstants.Type.MOUSE, InputConstants.MOUSE_BUTTON_RIGHT, blockMuffler));
 
     public static KeyMapping growAreaSize = wand(new KeyMapping("blockmuffler.key.growareasize", InputConstants.KEY_EQUALS, blockMuffler));
     public static KeyMapping shrinkAreaSize = wand(new KeyMapping("blockmuffler.key.shrinkareasize", InputConstants.KEY_MINUS, blockMuffler));
@@ -57,11 +58,17 @@ public class ModKeybindings {
             mc.setScreenAndShow(new AreaManagerScreen());
         }
 
-        if (toggleAllPlacements.consumeClick()) {
-            AreaManager.toggleAllPlacements();
+        if (toggleRendering.consumeClick()) {
+            BlockMufflerConfig.rendering = !BlockMufflerConfig.rendering;
+            MidnightConfig.write(BlockMuffler.MOD_ID);
+            if (mc.player != null) {
+                String msg = BlockMufflerConfig.rendering ? "Enabled" : "Disabled";
+
+                if (BlockMufflerConfig.logRenderToggle) {
+                    mc.player.sendOverlayMessage(Component.literal("Rendering " + msg + "! Disable 'Log Render Toggle' in settings to disable this message."));
+                }
+            }
         }
-
-
 
         if (selectArea.consumeClick()) AreaManager.selectBox(mc.player);
         if (setFirstPoint.consumeClick()) AreaManager.setFirstPoint();

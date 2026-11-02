@@ -4,9 +4,16 @@
   "blockmuffler.midnightconfig.category.Quick_Settings": "Quick Settings",
   "blockmuffler.midnightconfig.category.Rendering": "Rendering",
   "blockmuffler.midnightconfig.category.General": "General Settings",
+  "blockmuffler.midnightconfig.category.Logging": "Logging",
+
+  "blockmuffler.midnightconfig.logEditMode": "Log Edit Mode",
+  "blockmuffler.midnightconfig.logAreaLocked": "Log Area Locked",
+  "blockmuffler.midnightconfig.logRenderToggle": "Log Render Toggle",
 
 
   "blockmuffler.message.key_disabled": "The key you are trying to press is disabled right now! Please check the config.",
+  "blockmuffler.midnightconfig.editMode": "Edit Mode",
+  "blockmuffler.midnightconfig.areaEditOptions": "Area Edit Options",
 
 
   "blockmuffler.midnightconfig.areaKeybindOptions.REGULAR_KEYBINDS": "Regular Keybinds",
@@ -17,6 +24,17 @@
   "blockmuffler.midnightconfig.areaEditOptions.BOX_FACE": "Box Face",
   "blockmuffler.midnightconfig.areaEditOptions.tooltip": "Uses either the side of the box the player is looking at, or the direction the player is looking, to choose which side to grow or shrink the box to.",
 
+  "key.category.blockmuffler.blockmuffler": "Block Muffler",
+
+  "blockmuffler.key.openmanager": "Open Area Manager",
+  "blockmuffler.key.openconfig": "Open Config",
+  "blockmuffler.key.toggleRendering": "Toggle Rendering",
+  "blockmuffler.key.specialkey": "Special Key",
+  "blockmuffler.key.selectarea": "Select Area",
+  "blockmuffler.key.setfirstpoint": "Set First Point",
+  "blockmuffler.key.setsecondpoint": "Set Second Point",
+  "blockmuffler.key.growareasize": "Grow Area",
+  "blockmuffler.key.shrinkareasize": "Shrink Area",
 
   "blockmuffler.midnightconfig.hudAlignmentOptions": "Text Alignment",
   "blockmuffler.midnightconfig.hudAlignmentOptions.tooltip": "Decides where the 'Currently selected area:' text is rendered.",

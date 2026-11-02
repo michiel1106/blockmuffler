@@ -3,9 +3,9 @@
 	"id": "blockmuffler",
 	"version": "${version}",
 	"name": "blockmuffler",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "A mod that adds a way to muffle or fully disable sounds based on selected areas.",
 	"authors": [
-		"Me!"
+		"Bikerboys"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
